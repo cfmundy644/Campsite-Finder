@@ -13,6 +13,9 @@ public class InputController {
     @Autowired
     private FacilityRepository facilityRepository;
 
+    @Autowired
+    private CampsiteRepository campsiteRepository;
+
     @GetMapping("/testfile")
     public String testfile(Model model) {
         return "testfile";
@@ -41,8 +44,11 @@ public class InputController {
 
     @RequestMapping("/showinfo")
     public String getSelectFacilities(@ModelAttribute InputInfo inputInfo, Model model) {
+        // TODO discuss putting below logic here vs. in a class with CMTH
         Iterable<Facility> allFacs = facilityRepository.findAll();
-        HashSet<Facility> facsInRad = new HashSet<Facility>(); // facilities in radius
+        HashSet<Facility> facsInRadAvailable = new HashSet<Facility>(); // facilities in radius with availability
+        HashSet<Facility> facsInRadUnavailable = new HashSet<Facility>(); // facilities in radius with no availability
+
         for (Facility f : allFacs) {
             // TODO change this from Euclidean distance (look at this MapBox post): https://blog.mapbox.com/fast-geodesic-approximations-with-cheap-ruler-106f229ad016
 
@@ -60,10 +66,18 @@ public class InputController {
             dist = Math.toDegrees(dist);
             dist = dist * 60 * 1.1515;
             if (dist <= radHolder) {
-                facsInRad.add(f);
+                String currFacId = f.getRgFacilityId();
+                // TODO get list of all campsite IDs at facility
+                // TODO can either make this a database or a call - GIVEN 50 CAMPSITE LIMIT GOING TO MAKE THIS A DATABASE
+
+                // TODO check if any of those campsites have availability on all required days here, if yes
+                // GET https://www.recreation.gov/api/camps/availability/campsite/92086?start_date=2021-02-09T00%3A00%3A00.000Z&end_date=2022-02-09T00%3A00%3A00.000Z
+
+                facsInRadAvailable.add(f);
             }
         }
-        model.addAttribute("facsInRad",facsInRad);
+        model.addAttribute("facsInRadAvailable",facsInRadAvailable);
+        model.addAttribute("facsInRadUnavailable",facsInRadUnavailable);
         return "result";
     }
 
