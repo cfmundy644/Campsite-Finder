@@ -1,0 +1,15 @@
+<!DOCTYPE HTML>
+<html xmlns:th="https://www.thymeleaf.org">
+<head>
+    <title>Trip Information</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+        <h1>Result</h1>
+    <p th:text="'latitude: ' + ${inputinfo.latitude}" />
+    <p th:text="'longitude: ' + ${inputinfo.longitude}" />
+    <p th:text="'radius: ' + ${inputinfo.radius}" />
+    <p th:text="'Check-In Date: ' + ${inputinfo.checkInDate}" />
+    <p th:text="'Check-Out Date: ' + ${inputinfo.checkOutDate}" />
+</body>
+</html>

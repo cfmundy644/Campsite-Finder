@@ -1,0 +1,26 @@
+<!DOCTYPE HTML>
+<html xmlns:th="https://www.thymeleaf.org">
+<head>
+    <title>Trip Information</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+    <table>
+        <thead>
+            <tr>
+                <th> Campsite Name </th>
+                <th> RG Facility ID </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:if="${facsInRad.empty}">
+                <td colspan="2"> No Campsites in Radius </td>
+            </tr>
+            <tr th:each="fac : ${facsInRad}">
+                <td><span th:text="${fac.rgFacilityName}"> rgFacilityName </span></td>
+                <td><span th:text="${fac.rgFacilityId}"> rgFacilityId </span></td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
