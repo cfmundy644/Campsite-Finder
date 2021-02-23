@@ -5,21 +5,50 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 </head>
 <body>
+    <p> Check-In Date: </p> <p th:text=${inputInfo.checkInDate} >
+    <p> Check-Out Date: </p> <p th:text=${inputInfo.checkOutDate} >
+
     <table>
         <thead>
             <tr>
-                <th> Campsite Name </th>
+                <th> Available Campgrounds </th>
+            </tr>
+            <tr>
+                <th> Campground Name </th>
                 <th> RG Facility ID </th>
             </tr>
         </thead>
         <tbody>
-            <tr th:if="${facsInRad.empty}">
-                <td colspan="2"> No Campsites in Radius </td>
+            <tr th:if="${facsInRadAvailable.empty}">
+                <td colspan="2"> No available campsites in radius </td>
             </tr>
-            <tr th:each="fac : ${facsInRad}">
-                <td><span th:text="${fac.rgFacilityName}"> rgFacilityName </span></td>
-                <td><span th:text="${fac.rgFacilityId}"> rgFacilityId </span></td>
+            <tr th:each="availableFac : ${facsInRadAvailable}">
+                <td><span th:text="${availableFac.rgFacilityName}"> rgFacilityName </span></td>
+                <td><span th:text="${availableFac.rgFacilityId}"> rgFacilityId </span></td>
             </tr>
+        </tbody>
+    </table>
+
+    <p><br></p>
+
+    <table>
+        <thead>
+        <tr>
+            <th> Unavailable Campgrounds </th>
+        </tr>
+        <tr>
+            <th> Campground Name </th>
+            <th> RG Facility ID </th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:if="${facsInRadUnavailable.empty}">
+            <td colspan="2"> No unavailable campsites in radius </td>
+        </tr>
+        <tr th:each="unavailableFac : ${facsInRadUnavailable}">
+            <td><span th:text="${unavailableFac.rgFacilityName}"> rgFacilityName </span></td>
+            <td><span th:text="${unavailableFac.rgFacilityId}"> rgFacilityId </span></td>
+        </tr>
         </tbody>
     </table>
 </body>

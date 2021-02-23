@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.HttpURLConnection;
+import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.Scanner;
 
@@ -50,8 +51,7 @@ public class InputController {
      */
 
     @RequestMapping("/showinfo")
-    public @ResponseBody String getSelectFacilities(@ModelAttribute InputInfo inputInfo, Model model) {
-    //public String getSelectFacilities(@ModelAttribute InputInfo inputInfo, Model model) {
+    public String getSelectFacilities(@ModelAttribute InputInfo inputInfo, Model model) {
         // TODO discuss putting below logic here vs. in a class with CMTH
         Iterable<Facility> allFacs = facilityRepository.findAll();
         HashSet<Facility> facsInRadAvailable = new HashSet<Facility>(); // facilities in radius with availability
@@ -84,11 +84,15 @@ public class InputController {
                         campsitesAtFac.add(c);
                     }
                 }
-                // TODO check if any of those campsites have availability on all required days here, if yes
-                // GET https://www.recreation.gov/api/camps/availability/campsite/92086?start_date=2021-02-09T00%3A00%3A00.000Z&end_date=2022-02-09T00%3A00%3A00.000Z
-                // go through all campsites at current facility and see if there is any availability
+
+                boolean facHasAvailability = false;
+
+                // go through all campsites at facility to check for availability
                 for (Campsite d : campsitesAtFac) {
+
                     ObjectMapper objectMapper = new ObjectMapper();
+
+                    // sample API call url: "https://www.recreation.gov/api/camps/availability/campsite/92086?start_date=2021-03-09T00%3A00%3A00.000Z&end_date=2022-03-09T00%3A00%3A00.000Z"
                     StringBuilder stringBuilderUrl = new StringBuilder("https://www.recreation.gov/api/camps/availability/campsite/");
                     stringBuilderUrl.append(d.getRgCampsiteId());
 
@@ -108,27 +112,55 @@ public class InputController {
                     stringBuilderUrl.append(String.format("%02d",inputInfo.getCheckOutDate().minusDays(1).getDayOfMonth()));
                     stringBuilderUrl.append("T00%3A00%3A00.000Z");
                     String stringUrl = stringBuilderUrl.toString();
-                    //String testStringUrl = "https://www.recreation.gov/api/camps/availability/campsite/92086?start_date=2021-03-09T00%3A00%3A00.000Z&end_date=2022-03-09T00%3A00%3A00.000Z";
-                    // https://www.recreation.gov/api/camps/availability/campsite/81270?start_date=2021-02-04T00%3A00%3A00.000Z&end_date=2021-12-28T00%3A00%3A00.000Z
+
                     try {
                         URL url = new URL(stringUrl);
                         CampsiteAvailability campsiteAvailability = objectMapper.readValue(url, CampsiteAvailability.class);
-                        // return stringUrl;
-                        return campsiteAvailability.getAvailability().getAvailabilities().get("2021-08-26T00:00:00Z").toString();
+                        LocalDate dateHolder = inputInfo.getCheckInDate();
+                        // cycle through all dates to check for availability across all nights, no need to check on check-out day
+                        while (dateHolder.compareTo(inputInfo.getCheckOutDate()) < 0) {
+                            // TODO confirm all possible values for availability (ie. Available, Open, Unavailable, etc.)
+                            StringBuilder stringBuilderDate = new StringBuilder();
+                            stringBuilderDate.append(dateHolder.getYear());
+                            stringBuilderDate.append("-");
+                            stringBuilderDate.append(String.format("%02d", dateHolder.getMonthValue()));
+                            stringBuilderDate.append("-");
+                            stringBuilderDate.append(String.format("%02d", dateHolder.getDayOfMonth()));
+                            stringBuilderDate.append("T00:00:00Z");
+                            String dateKey = stringBuilderDate.toString();
+                            String availabilityStatus = campsiteAvailability.getAvailability().getAvailabilities().get(dateKey).toString();
+                            // TODO consider assumption that user wants to stay in same site the entire time
+                            // break out of date availability loop if it is not available on one of the nights of the stays
+                            if (!availabilityStatus.equals("Available")) {
+                                break;
+                            }
+                            // if the site is available and we have checked all dates
+                            else if (dateHolder.compareTo(inputInfo.getCheckOutDate().minusDays(1)) == 0) {
+                                facHasAvailability = true;
+                            }
+                            dateHolder = dateHolder.plusDays(1);
+                        }
 
                     } catch (Exception ex) {
                         // TODO figure out what to put here
                     }
+
+                    // if a single campsite has availability, no need to check the rest
+                    if (facHasAvailability) {
+                        facsInRadAvailable.add(f);
+                        break;
+                    }
                 }
+
+                // if we make it through all campsites and there is no availability, add facility to unavailable list
+                if (!facHasAvailability) {facsInRadUnavailable.add(f);}
             }
         }
-        return "error";
-    }
-        /*
         model.addAttribute("facsInRadAvailable",facsInRadAvailable);
         model.addAttribute("facsInRadUnavailable",facsInRadUnavailable);
+        model.addAttribute("inputInfo", inputInfo);
         return "result";
-         */
+    }
 
     /* No need to add facilities manually via post
     @PostMapping("/addfacility")
