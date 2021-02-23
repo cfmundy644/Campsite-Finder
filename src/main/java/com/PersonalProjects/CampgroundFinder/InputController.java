@@ -1,9 +1,16 @@
 package com.PersonalProjects.CampgroundFinder;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.HttpURLConnection;
+import java.util.Calendar;
+import java.util.Scanner;
 
 import java.util.HashSet;
 import java.awt.geom.Point2D;
@@ -43,7 +50,8 @@ public class InputController {
      */
 
     @RequestMapping("/showinfo")
-    public String getSelectFacilities(@ModelAttribute InputInfo inputInfo, Model model) {
+    public @ResponseBody String getSelectFacilities(@ModelAttribute InputInfo inputInfo, Model model) {
+    //public String getSelectFacilities(@ModelAttribute InputInfo inputInfo, Model model) {
         // TODO discuss putting below logic here vs. in a class with CMTH
         Iterable<Facility> allFacs = facilityRepository.findAll();
         HashSet<Facility> facsInRadAvailable = new HashSet<Facility>(); // facilities in radius with availability
@@ -66,20 +74,61 @@ public class InputController {
             dist = Math.toDegrees(dist);
             dist = dist * 60 * 1.1515;
             if (dist <= radHolder) {
-                String currFacId = f.getRgFacilityId();
-                // TODO get list of all campsite IDs at facility
-                // TODO can either make this a database or a call - GIVEN 50 CAMPSITE LIMIT GOING TO MAKE THIS A DATABASE
+                // TODO need to optimize this database call
+                Iterable<Campsite> allCampsites = campsiteRepository.findAll();
+                HashSet<Campsite> campsitesAtFac = new HashSet<Campsite>();
 
+                // create hashset of all campsites at current facility
+                for (Campsite c : allCampsites) {
+                    if (c.getRgFacilityId().equals(f.getRgFacilityId())) {
+                        campsitesAtFac.add(c);
+                    }
+                }
                 // TODO check if any of those campsites have availability on all required days here, if yes
                 // GET https://www.recreation.gov/api/camps/availability/campsite/92086?start_date=2021-02-09T00%3A00%3A00.000Z&end_date=2022-02-09T00%3A00%3A00.000Z
+                // go through all campsites at current facility and see if there is any availability
+                for (Campsite d : campsitesAtFac) {
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    StringBuilder stringBuilderUrl = new StringBuilder("https://www.recreation.gov/api/camps/availability/campsite/");
+                    stringBuilderUrl.append(d.getRgCampsiteId());
 
-                facsInRadAvailable.add(f);
+                    stringBuilderUrl.append("?start_date=");
+                    stringBuilderUrl.append(inputInfo.getCheckInDate().getYear());
+                    stringBuilderUrl.append("-");
+                    stringBuilderUrl.append(String.format("%02d",inputInfo.getCheckInDate().getMonthValue()));
+                    stringBuilderUrl.append("-");
+                    stringBuilderUrl.append(String.format("%02d",inputInfo.getCheckInDate().getDayOfMonth()));
+
+                    stringBuilderUrl.append("T00%3A00%3A00.000Z&end_date=");
+                    // subtracting one date from all of end dates, as last day we need to check is the day of the final night, not the check out date
+                    stringBuilderUrl.append(inputInfo.getCheckOutDate().minusDays(1).getYear());
+                    stringBuilderUrl.append("-");
+                    stringBuilderUrl.append(String.format("%02d",inputInfo.getCheckOutDate().minusDays(1).getMonthValue()));
+                    stringBuilderUrl.append("-");
+                    stringBuilderUrl.append(String.format("%02d",inputInfo.getCheckOutDate().minusDays(1).getDayOfMonth()));
+                    stringBuilderUrl.append("T00%3A00%3A00.000Z");
+                    String stringUrl = stringBuilderUrl.toString();
+                    //String testStringUrl = "https://www.recreation.gov/api/camps/availability/campsite/92086?start_date=2021-03-09T00%3A00%3A00.000Z&end_date=2022-03-09T00%3A00%3A00.000Z";
+                    // https://www.recreation.gov/api/camps/availability/campsite/81270?start_date=2021-02-04T00%3A00%3A00.000Z&end_date=2021-12-28T00%3A00%3A00.000Z
+                    try {
+                        URL url = new URL(stringUrl);
+                        CampsiteAvailability campsiteAvailability = objectMapper.readValue(url, CampsiteAvailability.class);
+                        // return stringUrl;
+                        return campsiteAvailability.getAvailability().getAvailabilities().get("2021-08-26T00:00:00Z").toString();
+
+                    } catch (Exception ex) {
+                        // TODO figure out what to put here
+                    }
+                }
             }
         }
+        return "error";
+    }
+        /*
         model.addAttribute("facsInRadAvailable",facsInRadAvailable);
         model.addAttribute("facsInRadUnavailable",facsInRadUnavailable);
         return "result";
-    }
+         */
 
     /* No need to add facilities manually via post
     @PostMapping("/addfacility")

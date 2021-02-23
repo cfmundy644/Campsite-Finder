@@ -1,13 +1,20 @@
 package com.PersonalProjects.CampgroundFinder;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.util.Date;
+import java.time.LocalDate;
 
 public class InputInfo {
     private double latitude;
     private double longitude;
     private int radius;
-    private Date checkInDate;
-    private Date checkOutDate;
+
+    @DateTimeFormat(pattern="yyyy-MM-dd")
+    private LocalDate checkInDate;
+
+    @DateTimeFormat(pattern="yyyy-MM-dd")
+    private LocalDate checkOutDate;
 
     public double getLatitude() {return latitude;}
     public void setLatitude(double latitude) {this.latitude = latitude;}
@@ -18,9 +25,9 @@ public class InputInfo {
     public int getRadius() {return radius;}
     public void setRadius(int radius) {this.radius = radius;}
 
-    public Date getCheckInDate() {return checkInDate;}
-    public void setCheckInDate(Date checkInDate) {this.checkInDate = checkInDate;}
+    public LocalDate getCheckInDate() {return checkInDate;}
+    public void setCheckInDate(LocalDate checkInDate) {this.checkInDate = checkInDate;}
 
-    public Date getCheckOutDate() {return checkOutDate;}
-    public void setCheckOutDate(Date checkOutDate) {this.checkOutDate = checkOutDate;}
+    public LocalDate getCheckOutDate() {return checkOutDate;}
+    public void setCheckOutDate(LocalDate checkOutDate) {this.checkOutDate = checkOutDate;}
 }
