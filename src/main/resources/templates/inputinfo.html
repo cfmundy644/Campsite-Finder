@@ -6,9 +6,14 @@
 </head>
 <body>
         <h1>Trip Information</h1>
+        <h2>Trip Starting Point</h2>
     <form action="#" th:action="@{/showinfo}" th:object="${inputinfo}" method="post">
-        <p>Trip Starting Point (Latitude): <input type="text" th:field="*{latitude}" /></p>
-        <p>Trip Starting Point (Longitude): <input type="text" th:field="*{longitude}" /></p>
+        <p>Street Address: <input type="text" th:field="*{streetAddress}" /></p>
+        <p>City: <input type="text" th:field="*{city}" /></p>
+        <p>State: <input type="text" th:field="*{state}" /></p>
+        <p>Zip Code: <input type="text" th:field="*{zip}" /></p>
+
+        <h2>Other Trip Information</h2>
         <p>Trip Max Radius (Miles): <input type="text" th:field="*{radius}" /></p>
         <p>Trip Check In Date: <input type="date" th:field="*{checkInDate}" /></p>
         <p>Trip Check Out Date: <input type="date" th:field="*{checkOutDate}" /></p>

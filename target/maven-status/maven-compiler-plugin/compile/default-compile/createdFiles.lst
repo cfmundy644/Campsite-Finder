@@ -1,3 +1,4 @@
+com\PersonalProjects\CampgroundFinder\LocationJSON.class
 com\PersonalProjects\CampgroundFinder\InputInfo.class
 com\PersonalProjects\CampgroundFinder\CampgroundFinderApplication.class
 com\PersonalProjects\CampgroundFinder\CampsiteAvailability.class
@@ -6,4 +7,7 @@ com\PersonalProjects\CampgroundFinder\Facility.class
 com\PersonalProjects\CampgroundFinder\Availability.class
 com\PersonalProjects\CampgroundFinder\InputController.class
 com\PersonalProjects\CampgroundFinder\FacilityRepository.class
+com\PersonalProjects\CampgroundFinder\GeometryJSON.class
 com\PersonalProjects\CampgroundFinder\Campsite.class
+com\PersonalProjects\CampgroundFinder\ResultsJSON.class
+com\PersonalProjects\CampgroundFinder\GeocodeJSON.class

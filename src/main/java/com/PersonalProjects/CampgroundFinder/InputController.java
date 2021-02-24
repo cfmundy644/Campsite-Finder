@@ -57,9 +57,32 @@ public class InputController {
         HashSet<Facility> facsInRadAvailable = new HashSet<Facility>(); // facilities in radius with availability
         HashSet<Facility> facsInRadUnavailable = new HashSet<Facility>(); // facilities in radius with no availability
 
+        // sample api call "https://maps.googleapis.com/maps/api/geocode/json?address=1600+Amphitheatre+Parkway,+Mountain+View,+CA&key=YOUR_API_KEY"
+        StringBuilder geocodeAPIUrlSB = new StringBuilder("https://maps.googleapis.com/maps/api/geocode/json?address=");
+        geocodeAPIUrlSB.append(inputInfo.getStreetAddress().replaceAll(" ", "%20"));
+        geocodeAPIUrlSB.append(",%20");
+        geocodeAPIUrlSB.append(inputInfo.getCity().replaceAll(" ", "%20"));
+        geocodeAPIUrlSB.append(",%20");
+        geocodeAPIUrlSB.append("&key=AIzaSyDjzILiKx-IzTpbnq7B9B21DV3a7KyeQZc");
+        URL geocodeAPIUrl = null;
+        ObjectMapper geocodeMapper = new ObjectMapper();
+        Geocode geocode = new Geocode();
+        try {
+            geocodeAPIUrl = new URL(geocodeAPIUrlSB.toString());
+            geocode = geocodeMapper.readValue(geocodeAPIUrl, Geocode.class);
+        } catch (Exception ex) {
+            // TODO figure out what to put here
+        }
+
+        inputInfo.setLatitude(geocode.getResults()[0].getGeometry().getLocation().getLat());
+        inputInfo.setLongitude(geocode.getResults()[0].getGeometry().getLocation().getLng());
+
         for (Facility f : allFacs) {
+
+
             // TODO change this from Euclidean distance (look at this MapBox post): https://blog.mapbox.com/fast-geodesic-approximations-with-cheap-ruler-106f229ad016
 
+            // TODO create class LatLongsToMiles
             double lon1 = inputInfo.getLongitude();
             double lat1 = inputInfo.getLatitude();
             int radHolder = inputInfo.getRadius();
@@ -129,7 +152,7 @@ public class InputController {
                             stringBuilderDate.append("T00:00:00Z");
                             String dateKey = stringBuilderDate.toString();
                             String availabilityStatus = campsiteAvailability.getAvailability().getAvailabilities().get(dateKey).toString();
-                            // TODO consider assumption that user wants to stay in same site the entire time
+                            // TODO consider changing assumption that user wants to stay in same site the entire time
                             // break out of date availability loop if it is not available on one of the nights of the stays
                             if (!availabilityStatus.equals("Available")) {
                                 break;
@@ -160,6 +183,7 @@ public class InputController {
         model.addAttribute("facsInRadUnavailable",facsInRadUnavailable);
         model.addAttribute("inputInfo", inputInfo);
         return "result";
+
     }
 
     /* No need to add facilities manually via post
