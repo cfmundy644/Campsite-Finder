@@ -56,6 +56,7 @@ public class InputController {
         Iterable<Facility> allFacs = facilityRepository.findAll();
         HashSet<Facility> facsInRadAvailable = new HashSet<Facility>(); // facilities in radius with availability
         HashSet<Facility> facsInRadUnavailable = new HashSet<Facility>(); // facilities in radius with no availability
+        String googleKey = "AIzaSyDjzILiKx-IzTpbnq7B9B21DV3a7KyeQZc";
 
         // sample api call "https://maps.googleapis.com/maps/api/geocode/json?address=1600+Amphitheatre+Parkway,+Mountain+View,+CA&key=YOUR_API_KEY"
         StringBuilder geocodeAPIUrlSB = new StringBuilder("https://maps.googleapis.com/maps/api/geocode/json?address=");
@@ -63,7 +64,8 @@ public class InputController {
         geocodeAPIUrlSB.append(",%20");
         geocodeAPIUrlSB.append(inputInfo.getCity().replaceAll(" ", "%20"));
         geocodeAPIUrlSB.append(",%20");
-        geocodeAPIUrlSB.append("&key=AIzaSyDjzILiKx-IzTpbnq7B9B21DV3a7KyeQZc");
+        geocodeAPIUrlSB.append("&key=");
+        geocodeAPIUrlSB.append(googleKey);
         URL geocodeAPIUrl = null;
         ObjectMapper geocodeMapper = new ObjectMapper();
         Geocode geocode = new Geocode();
@@ -179,6 +181,47 @@ public class InputController {
                 if (!facHasAvailability) {facsInRadUnavailable.add(f);}
             }
         }
+        // TODO add weather and ratings to the two lists of facsInRad
+
+        for (Facility f : facsInRadAvailable) {
+            // TODO copy in code here
+        }
+
+        // TODO consolidate repeated code block (above and below) into class
+        for (Facility f : facsInRadUnavailable) {
+            // places API: pass in campsite name and lat long, ask to receive name, rating
+            // TODO add location bias to this call
+            // example call: "https://maps.googleapis.com/maps/api/place/textsearch/json?input=CAMP%20GATEWAY%20-%20SANDY%20HOOK&locationbias=point:40,-74&key=AIzaSyDjzILiKx-IzTpbnq7B9B21DV3a7KyeQZc"
+            StringBuilder facPlaceAPIUrlSB = new StringBuilder("https://maps.googleapis.com/maps/api/place/textsearch/json?input=");
+            facPlaceAPIUrlSB.append(f.getRgFacilityName().replaceAll(" ", "%20"));
+            facPlaceAPIUrlSB.append("&locationbias=point:");
+            facPlaceAPIUrlSB.append(f.getLatitude());
+            facPlaceAPIUrlSB.append(",");
+            facPlaceAPIUrlSB.append(f.getLongitude());
+            facPlaceAPIUrlSB.append("&key=");
+            facPlaceAPIUrlSB.append(googleKey);
+            URL facPlaceAPIUrl = null;
+            ObjectMapper facPlaceMapper = new ObjectMapper();
+            FacGooglePlace facGooglePlace = new FacGooglePlace();
+            try {
+                facPlaceAPIUrl = new URL(facPlaceAPIUrlSB.toString());
+                facGooglePlace = facPlaceMapper.readValue(facPlaceAPIUrl, FacGooglePlace.class);
+            } catch (Exception ex) {
+                // TODO figure out what to put here
+            }
+
+            f.setGoogRating(facGooglePlace.getResultsRating());
+            f.setGoogName(facGooglePlace.getResultsName());
+            f.setGoogPlaceId(facGooglePlace.getResultsPlace_id());
+            f.setGoogUserRatingsTotal(facGooglePlace.getResultsUser_Ratings_Total());
+
+            // TODO add link to places based on this call "https://www.google.com/maps/place/?q=place_id:ChIJp4JiUCNP0xQR1JaSjpW_Hms"
+        }
+
+
+
+
+
         model.addAttribute("facsInRadAvailable",facsInRadAvailable);
         model.addAttribute("facsInRadUnavailable",facsInRadUnavailable);
         model.addAttribute("inputInfo", inputInfo);
