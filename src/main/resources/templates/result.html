@@ -23,8 +23,9 @@
                 <td colspan="2"> No available campsites in radius </td>
             </tr>
             <tr th:each="availableFac : ${facsInRadAvailable}">
-                <td><span th:text="${availableFac.rgFacilityName}"> rgFacilityName </span></td>
-                <td><span th:text="${availableFac.rgFacilityId}"> rgFacilityId </span></td>
+                <td th:text="${availableFac.rgFacilityName}">
+                <td th:text="${availableFac.rgFacilityId}">
+                <td><a th:href="@{'https://www.recreation.gov/camping/campgrounds/' + ${availableFac.rgFacilityId}}"> Link to campground webpage </a></td>
             </tr>
         </tbody>
     </table>
@@ -46,8 +47,9 @@
             <td colspan="2"> No unavailable campsites in radius </td>
         </tr>
         <tr th:each="unavailableFac : ${facsInRadUnavailable}">
-            <td><span th:text="${unavailableFac.rgFacilityName}"> rgFacilityName </span></td>
-            <td><span th:text="${unavailableFac.rgFacilityId}"> rgFacilityId </span></td>
+            <td th:text="${unavailableFac.rgFacilityName}">
+            <td th:text="${unavailableFac.rgFacilityId}">
+            <td><a th:href="@{'https://www.recreation.gov/camping/campgrounds/' + ${unavailableFac.rgFacilityId}}"> Link to campground webpage </a></td>
         </tr>
         </tbody>
     </table>
