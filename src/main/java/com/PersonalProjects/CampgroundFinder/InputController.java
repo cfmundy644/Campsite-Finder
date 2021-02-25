@@ -87,25 +87,16 @@ public class InputController {
         inputInfo.setLongitude(geocode.getResults()[0].getGeometry().getLocation().getLng());
 
         for (Facility f : allFacs) {
-
-
-            // TODO change this from Euclidean distance (look at this MapBox post): https://blog.mapbox.com/fast-geodesic-approximations-with-cheap-ruler-106f229ad016
-
-            // TODO create class LatLongsToMiles
             double lon1 = inputInfo.getLongitude();
             double lat1 = inputInfo.getLatitude();
-            int radHolder = inputInfo.getRadius();
 
             double lon2 = f.getLongitude();
             double lat2 = f.getLatitude();
-            //double distToFac = Point2D.distance(latHolder, longHolder, f.getLatitude(), f.getLongitude());
-            // https://www.geodatasource.com/developers/java
-            double theta = lon1 - lon2;
-            double dist = Math.sin(Math.toRadians(lat1)) * Math.sin(Math.toRadians(lat2)) + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) * Math.cos(Math.toRadians(theta));
-            dist = Math.acos(dist);
-            dist = Math.toDegrees(dist);
-            dist = dist * 60 * 1.1515;
-            if (dist <= radHolder) {
+
+            LatLongsToMiles latLongsToMiles = new LatLongsToMiles(lat1, lon1, lat2, lon2);
+            double dist = latLongsToMiles.getDist();
+
+            if (dist <= inputInfo.getRadius()) {
                 // TODO need to optimize this database call
                 Iterable<Campsite> allCampsites = campsiteRepository.findAll();
                 HashSet<Campsite> campsitesAtFac = new HashSet<Campsite>();
