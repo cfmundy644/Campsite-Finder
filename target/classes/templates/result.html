@@ -61,7 +61,7 @@
         <tr th:each="unavailableFac : ${facsInRadUnavailable}">
             <td th:text="${unavailableFac.rgFacilityName}">
             <td th:text="${unavailableFac.rgFacilityId}">
-            <td th:text="${unavailableFac.googPlaceId}">
+            <td th:text="${unavailableFac.googName}">
             <td th:text="${unavailableFac.googRating} + '(' + ${unavailableFac.googUserRatingsTotal} + ')'">
             <td><a th:href="@{'https://www.google.com/maps/place/?q=place_id:' + ${unavailableFac.googPlaceId}}"> Google Maps </a></td>
             <td><a th:href="@{'https://www.recreation.gov/camping/campgrounds/' + ${unavailableFac.rgFacilityId}}"> Campground Website </a></td>
