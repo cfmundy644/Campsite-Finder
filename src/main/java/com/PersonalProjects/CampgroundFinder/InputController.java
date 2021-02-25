@@ -119,66 +119,66 @@ public class InputController {
 
                 boolean facHasAvailability = false;
 
+
+
+
+                // TODO investigate making alternate calls for facility here
+                // TODO create loops for months and years (create max two week stay - will need to validate)
+                // https://www.recreation.gov/api/camps/availability/campground/234718/month?start_date=2021-04-01T00%3A00%3A00.000Z
+
+                StringBuilder campgroundAvailabilityUrlSB = new StringBuilder();
+                campgroundAvailabilityUrlSB.append("https://www.recreation.gov/api/camps/availability/campground/");
+                campgroundAvailabilityUrlSB.append(f.getRgFacilityId());
+                campgroundAvailabilityUrlSB.append("/month?start_date=");
+                campgroundAvailabilityUrlSB.append(inputInfo.getCheckInDate().getYear());
+                campgroundAvailabilityUrlSB.append("-");
+                campgroundAvailabilityUrlSB.append(String.format("%02d", inputInfo.getCheckInDate().getMonthValue()));
+                campgroundAvailabilityUrlSB.append("-01T00%3A00%3A00.000Z"); // this api call only accepts the first of the month
+
+                URL availabilityUrl = null;
+                ObjectMapper availabilityMapper = new ObjectMapper();
+                CampgroundAvailability campgroundAvailability = new CampgroundAvailability();
+                int counter = 0;
+                int maxAttempts = 10;
+                boolean apiCallSuccess = false;
+                // keep trying API call (10 times max) before returning error
+                while (!apiCallSuccess && counter < maxAttempts) {
+                    apiCallSuccess = true;
+                    try {
+                        availabilityUrl = new URL(campgroundAvailabilityUrlSB.toString());
+                        campgroundAvailability = availabilityMapper.readValue(availabilityUrl, CampgroundAvailability.class);
+                    } catch (Exception ex) {
+                        apiCallSuccess = false;
+                        counter++;
+                        /*
+                        try {
+                            Thread.sleep(500);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+
+                         */
+                        if (counter == maxAttempts) {
+                            model.addAttribute("availabilityapicallurl", campgroundAvailabilityUrlSB.toString());
+                            return "rgAPICallError";
+                        }
+                    }
+                }
+
+
                 // go through all campsites at facility to check for availability
                 for (Campsite d : campsitesAtFac) {
                     // testing slowing down API calls to not get rate limited (which returns error pages)
+                    /*
                     try {
                         Thread.sleep(100);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
 
-                    String rgApiKey = "8ab6f3bc-875b-4bc9-ac04-54a5e287feb3";
-                    // sample API call url: "https://www.recreation.gov/api/camps/availability/campsite/92086?start_date=2021-03-09T00%3A00%3A00.000Z&end_date=2022-03-09T00%3A00%3A00.000Z"
-                    StringBuilder availabilityUrlSB = new StringBuilder("https://www.recreation.gov/api/camps/availability/campsite/");
-                    availabilityUrlSB.append(d.getRgCampsiteId());
+                     */
 
-                    availabilityUrlSB.append("?start_date=");
-                    availabilityUrlSB.append(inputInfo.getCheckInDate().getYear());
-                    availabilityUrlSB.append("-");
-                    availabilityUrlSB.append(String.format("%02d",inputInfo.getCheckInDate().getMonthValue()));
-                    availabilityUrlSB.append("-");
-                    availabilityUrlSB.append(String.format("%02d",inputInfo.getCheckInDate().getDayOfMonth()));
-                    availabilityUrlSB.append("T00%3A00%3A00.000Z&end_date=");
-                    availabilityUrlSB.append(inputInfo.getCheckOutDate().getYear());
-                    availabilityUrlSB.append("-");
-                    availabilityUrlSB.append(String.format("%02d",inputInfo.getCheckOutDate().getMonthValue()));
-                    availabilityUrlSB.append("-");
-                    availabilityUrlSB.append(String.format("%02d",inputInfo.getCheckOutDate().getDayOfMonth()));
-                    availabilityUrlSB.append("T00%3A00%3A00.000Z");
-                    // TODO investigate making alterate calls for facility here
-                    // https://www.recreation.gov/api/camps/availability/campground/234718/month?start_date=2021-04-01T00%3A00%3A00.000Z
 
-                    /*
-                    availabilityUrlSB.append("&apikey=");
-                    availabilityUrlSB.append(rgApiKey);
-                    */
-                    URL availabilityUrl = null;
-                    ObjectMapper availabilityMapper = new ObjectMapper();
-                    CampsiteAvailability campsiteAvailability = new CampsiteAvailability();
-                    int counter = 0;
-                    int maxAttempts = 10;
-                    boolean apiCallSuccess = false;
-                    // keep trying API call (10 times max) before returning error
-                    while (!apiCallSuccess && counter < maxAttempts) {
-                        apiCallSuccess = true;
-                        try {
-                            availabilityUrl = new URL(availabilityUrlSB.toString());
-                            campsiteAvailability = availabilityMapper.readValue(availabilityUrl, CampsiteAvailability.class);
-                        } catch (Exception ex) {
-                            apiCallSuccess = false;
-                            counter++;
-                            try {
-                                Thread.sleep(500);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            if (counter == maxAttempts) {
-                                model.addAttribute("availabilityapicallurl", availabilityUrlSB.toString());
-                                return "rgAPICallError";
-                            }
-                        }
-                    }
                     LocalDate dateHolder = inputInfo.getCheckInDate();
                     // cycle through all dates to check for availability across all nights, no need to check on check-out day
                     while (dateHolder.compareTo(inputInfo.getCheckOutDate()) < 0) {
@@ -193,10 +193,10 @@ public class InputController {
                         String dateKey = stringBuilderDate.toString();
                         String availabilityStatus = new String();
                         try {
-                            availabilityStatus = campsiteAvailability.getAvailability().getAvailabilities().get(dateKey).toString();
+                            //availabilityStatus = campsiteAvailability.getAvailability().getAvailabilities().get(dateKey).toString();
+                            availabilityStatus = campgroundAvailability.getCampsites().get(d.getRgCampsiteId()).getAvailabilities().get(dateKey).toString();
                         } catch (NullPointerException np) {
                             availabilityStatus = "Unavailable"; // certain unavailable sites will not return any availability info so need to override that here
-                            //return "RG API Object Mapping Error";
                         }
                         // TODO consider changing assumption that user wants to stay in same site the entire time
                         // break out of date availability loop if it is not available on one of the nights of the stays
@@ -241,7 +241,8 @@ public class InputController {
                 facPlaceAPIUrl = new URL(facPlaceAPIUrlSB.toString());
                 facGooglePlace = facPlaceMapper.readValue(facPlaceAPIUrl, FacGooglePlace.class);
             } catch (Exception ex) {
-                return "Google Places API Call Error";
+                // return "Google Places API Call Error";
+                // ok to come up empty here
             }
             f.setGoogRating(facGooglePlace.getResultsRating());
             f.setGoogName(facGooglePlace.getResultsName());
@@ -255,7 +256,7 @@ public class InputController {
             // example call: "https://maps.googleapis.com/maps/api/place/textsearch/json?input=CAMP%20GATEWAY%20-%20SANDY%20HOOK&locationbias=point:40,-74&key=AIzaSyDjzILiKx-IzTpbnq7B9B21DV3a7KyeQZc"
             StringBuilder facPlaceAPIUrlSB = new StringBuilder("https://maps.googleapis.com/maps/api/place/textsearch/json?input=");
             facPlaceAPIUrlSB.append(f.getRgFacilityName().replaceAll(" ", "%20"));
-            facPlaceAPIUrlSB.append("&locationbias=point:");
+            facPlaceAPIUrlSB.append("%20campground&locationbias=point:");
             facPlaceAPIUrlSB.append(f.getLatitude());
             facPlaceAPIUrlSB.append(",");
             facPlaceAPIUrlSB.append(f.getLongitude());
@@ -268,7 +269,8 @@ public class InputController {
                 facPlaceAPIUrl = new URL(facPlaceAPIUrlSB.toString());
                 facGooglePlace = facPlaceMapper.readValue(facPlaceAPIUrl, FacGooglePlace.class);
             } catch (Exception ex) {
-                return "Google Places API Call Error";
+                //return "Google Places API Call Error";
+                // ok to come up empty here
             }
             f.setGoogRating(facGooglePlace.getResultsRating());
             f.setGoogName(facGooglePlace.getResultsName());
