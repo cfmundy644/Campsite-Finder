@@ -128,7 +128,7 @@ public class InputController {
                         e.printStackTrace();
                     }
 
-
+                    String rgApiKey = "8ab6f3bc-875b-4bc9-ac04-54a5e287feb3";
                     // sample API call url: "https://www.recreation.gov/api/camps/availability/campsite/92086?start_date=2021-03-09T00%3A00%3A00.000Z&end_date=2022-03-09T00%3A00%3A00.000Z"
                     StringBuilder availabilityUrlSB = new StringBuilder("https://www.recreation.gov/api/camps/availability/campsite/");
                     availabilityUrlSB.append(d.getRgCampsiteId());
@@ -139,35 +139,45 @@ public class InputController {
                     availabilityUrlSB.append(String.format("%02d",inputInfo.getCheckInDate().getMonthValue()));
                     availabilityUrlSB.append("-");
                     availabilityUrlSB.append(String.format("%02d",inputInfo.getCheckInDate().getDayOfMonth()));
-
                     availabilityUrlSB.append("T00%3A00%3A00.000Z&end_date=");
-                    /*
-                    // subtracting one date from all of end dates, as last day we need to check is the day of the final night, not the check out date
-                    availabilityUrlSB.append(inputInfo.getCheckOutDate().minusDays(1).getYear());
-                    availabilityUrlSB.append("-");
-                    availabilityUrlSB.append(String.format("%02d",inputInfo.getCheckOutDate().minusDays(1).getMonthValue()));
-                    availabilityUrlSB.append("-");
-                    availabilityUrlSB.append(String.format("%02d",inputInfo.getCheckOutDate().minusDays(1).getDayOfMonth()));
-                    availabilityUrlSB.append("T00%3A00%3A00.000Z");
-
-                     */
-                    // not always getting full amount of data needed to trying to give some cushion on the back end
                     availabilityUrlSB.append(inputInfo.getCheckOutDate().getYear());
                     availabilityUrlSB.append("-");
                     availabilityUrlSB.append(String.format("%02d",inputInfo.getCheckOutDate().getMonthValue()));
                     availabilityUrlSB.append("-");
                     availabilityUrlSB.append(String.format("%02d",inputInfo.getCheckOutDate().getDayOfMonth()));
                     availabilityUrlSB.append("T00%3A00%3A00.000Z");
+                    // TODO investigate making alterate calls for facility here
+                    // https://www.recreation.gov/api/camps/availability/campground/234718/month?start_date=2021-04-01T00%3A00%3A00.000Z
 
-
+                    /*
+                    availabilityUrlSB.append("&apikey=");
+                    availabilityUrlSB.append(rgApiKey);
+                    */
                     URL availabilityUrl = null;
                     ObjectMapper availabilityMapper = new ObjectMapper();
                     CampsiteAvailability campsiteAvailability = new CampsiteAvailability();
-                    try {
-                        availabilityUrl = new URL(availabilityUrlSB.toString());
-                        campsiteAvailability = availabilityMapper.readValue(availabilityUrl, CampsiteAvailability.class);
-                    } catch (Exception ex) {
-                        return "RG API Call Error";
+                    int counter = 0;
+                    int maxAttempts = 10;
+                    boolean apiCallSuccess = false;
+                    // keep trying API call (10 times max) before returning error
+                    while (!apiCallSuccess && counter < maxAttempts) {
+                        apiCallSuccess = true;
+                        try {
+                            availabilityUrl = new URL(availabilityUrlSB.toString());
+                            campsiteAvailability = availabilityMapper.readValue(availabilityUrl, CampsiteAvailability.class);
+                        } catch (Exception ex) {
+                            apiCallSuccess = false;
+                            counter++;
+                            try {
+                                Thread.sleep(500);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            if (counter == maxAttempts) {
+                                model.addAttribute("availabilityapicallurl", availabilityUrlSB.toString());
+                                return "rgAPICallError";
+                            }
+                        }
                     }
                     LocalDate dateHolder = inputInfo.getCheckInDate();
                     // cycle through all dates to check for availability across all nights, no need to check on check-out day
