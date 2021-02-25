@@ -31,7 +31,14 @@ public class InputController {
 
     @RequestMapping("/inputinfo")
     public String inputinfoForm(Model model) {
-        model.addAttribute("inputinfo", new InputInfo());
+        InputInfo inputInfo = new InputInfo();
+        inputInfo.setRadius(100); // default search radius (pre-populated into form)
+        LocalDate dateMonthFromToday = LocalDate.now();
+        dateMonthFromToday = dateMonthFromToday.plusMonths(1);
+        inputInfo.setCheckInDate(dateMonthFromToday);
+        int defaultNumNights = 3;
+        inputInfo.setCheckOutDate(dateMonthFromToday.plusDays(defaultNumNights));
+        model.addAttribute("inputinfo", inputInfo);
         return "inputinfo";
     }
 
@@ -217,10 +224,6 @@ public class InputController {
 
             // TODO add link to places based on this call "https://www.google.com/maps/place/?q=place_id:ChIJp4JiUCNP0xQR1JaSjpW_Hms"
         }
-
-
-
-
 
         model.addAttribute("facsInRadAvailable",facsInRadAvailable);
         model.addAttribute("facsInRadUnavailable",facsInRadUnavailable);
