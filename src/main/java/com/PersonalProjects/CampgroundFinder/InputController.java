@@ -80,7 +80,7 @@ public class InputController {
             geocodeAPIUrl = new URL(geocodeAPIUrlSB.toString());
             geocode = geocodeMapper.readValue(geocodeAPIUrl, Geocode.class);
         } catch (Exception ex) {
-            // TODO figure out what to put here
+            return "Google geocoder API Call Error";
         }
 
         inputInfo.setLatitude(geocode.getResults()[0].getGeometry().getLocation().getLat());
@@ -121,60 +121,83 @@ public class InputController {
 
                 // go through all campsites at facility to check for availability
                 for (Campsite d : campsitesAtFac) {
+                    // testing slowing down API calls to not get rate limited (which returns error pages)
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
 
-                    ObjectMapper objectMapper = new ObjectMapper();
 
                     // sample API call url: "https://www.recreation.gov/api/camps/availability/campsite/92086?start_date=2021-03-09T00%3A00%3A00.000Z&end_date=2022-03-09T00%3A00%3A00.000Z"
-                    StringBuilder stringBuilderUrl = new StringBuilder("https://www.recreation.gov/api/camps/availability/campsite/");
-                    stringBuilderUrl.append(d.getRgCampsiteId());
+                    StringBuilder availabilityUrlSB = new StringBuilder("https://www.recreation.gov/api/camps/availability/campsite/");
+                    availabilityUrlSB.append(d.getRgCampsiteId());
 
-                    stringBuilderUrl.append("?start_date=");
-                    stringBuilderUrl.append(inputInfo.getCheckInDate().getYear());
-                    stringBuilderUrl.append("-");
-                    stringBuilderUrl.append(String.format("%02d",inputInfo.getCheckInDate().getMonthValue()));
-                    stringBuilderUrl.append("-");
-                    stringBuilderUrl.append(String.format("%02d",inputInfo.getCheckInDate().getDayOfMonth()));
+                    availabilityUrlSB.append("?start_date=");
+                    availabilityUrlSB.append(inputInfo.getCheckInDate().getYear());
+                    availabilityUrlSB.append("-");
+                    availabilityUrlSB.append(String.format("%02d",inputInfo.getCheckInDate().getMonthValue()));
+                    availabilityUrlSB.append("-");
+                    availabilityUrlSB.append(String.format("%02d",inputInfo.getCheckInDate().getDayOfMonth()));
 
-                    stringBuilderUrl.append("T00%3A00%3A00.000Z&end_date=");
+                    availabilityUrlSB.append("T00%3A00%3A00.000Z&end_date=");
+                    /*
                     // subtracting one date from all of end dates, as last day we need to check is the day of the final night, not the check out date
-                    stringBuilderUrl.append(inputInfo.getCheckOutDate().minusDays(1).getYear());
-                    stringBuilderUrl.append("-");
-                    stringBuilderUrl.append(String.format("%02d",inputInfo.getCheckOutDate().minusDays(1).getMonthValue()));
-                    stringBuilderUrl.append("-");
-                    stringBuilderUrl.append(String.format("%02d",inputInfo.getCheckOutDate().minusDays(1).getDayOfMonth()));
-                    stringBuilderUrl.append("T00%3A00%3A00.000Z");
-                    String stringUrl = stringBuilderUrl.toString();
+                    availabilityUrlSB.append(inputInfo.getCheckOutDate().minusDays(1).getYear());
+                    availabilityUrlSB.append("-");
+                    availabilityUrlSB.append(String.format("%02d",inputInfo.getCheckOutDate().minusDays(1).getMonthValue()));
+                    availabilityUrlSB.append("-");
+                    availabilityUrlSB.append(String.format("%02d",inputInfo.getCheckOutDate().minusDays(1).getDayOfMonth()));
+                    availabilityUrlSB.append("T00%3A00%3A00.000Z");
 
+                     */
+                    // not always getting full amount of data needed to trying to give some cushion on the back end
+                    availabilityUrlSB.append(inputInfo.getCheckOutDate().getYear());
+                    availabilityUrlSB.append("-");
+                    availabilityUrlSB.append(String.format("%02d",inputInfo.getCheckOutDate().getMonthValue()));
+                    availabilityUrlSB.append("-");
+                    availabilityUrlSB.append(String.format("%02d",inputInfo.getCheckOutDate().getDayOfMonth()));
+                    availabilityUrlSB.append("T00%3A00%3A00.000Z");
+
+
+                    URL availabilityUrl = null;
+                    ObjectMapper availabilityMapper = new ObjectMapper();
+                    CampsiteAvailability campsiteAvailability = new CampsiteAvailability();
                     try {
-                        URL url = new URL(stringUrl);
-                        CampsiteAvailability campsiteAvailability = objectMapper.readValue(url, CampsiteAvailability.class);
-                        LocalDate dateHolder = inputInfo.getCheckInDate();
-                        // cycle through all dates to check for availability across all nights, no need to check on check-out day
-                        while (dateHolder.compareTo(inputInfo.getCheckOutDate()) < 0) {
-                            // TODO confirm all possible values for availability (ie. Available, Open, Unavailable, etc.)
-                            StringBuilder stringBuilderDate = new StringBuilder();
-                            stringBuilderDate.append(dateHolder.getYear());
-                            stringBuilderDate.append("-");
-                            stringBuilderDate.append(String.format("%02d", dateHolder.getMonthValue()));
-                            stringBuilderDate.append("-");
-                            stringBuilderDate.append(String.format("%02d", dateHolder.getDayOfMonth()));
-                            stringBuilderDate.append("T00:00:00Z");
-                            String dateKey = stringBuilderDate.toString();
-                            String availabilityStatus = campsiteAvailability.getAvailability().getAvailabilities().get(dateKey).toString();
-                            // TODO consider changing assumption that user wants to stay in same site the entire time
-                            // break out of date availability loop if it is not available on one of the nights of the stays
-                            if (!availabilityStatus.equals("Available")) {
-                                break;
-                            }
-                            // if the site is available and we have checked all dates
-                            else if (dateHolder.compareTo(inputInfo.getCheckOutDate().minusDays(1)) == 0) {
-                                facHasAvailability = true;
-                            }
-                            dateHolder = dateHolder.plusDays(1);
-                        }
-
+                        availabilityUrl = new URL(availabilityUrlSB.toString());
+                        campsiteAvailability = availabilityMapper.readValue(availabilityUrl, CampsiteAvailability.class);
                     } catch (Exception ex) {
-                        // TODO figure out what to put here
+                        return "RG API Call Error";
+                    }
+                    LocalDate dateHolder = inputInfo.getCheckInDate();
+                    // cycle through all dates to check for availability across all nights, no need to check on check-out day
+                    while (dateHolder.compareTo(inputInfo.getCheckOutDate()) < 0) {
+                        // TODO confirm all possible values for availability (ie. Available, Open, Unavailable, etc.)
+                        StringBuilder stringBuilderDate = new StringBuilder();
+                        stringBuilderDate.append(dateHolder.getYear());
+                        stringBuilderDate.append("-");
+                        stringBuilderDate.append(String.format("%02d", dateHolder.getMonthValue()));
+                        stringBuilderDate.append("-");
+                        stringBuilderDate.append(String.format("%02d", dateHolder.getDayOfMonth()));
+                        stringBuilderDate.append("T00:00:00Z");
+                        String dateKey = stringBuilderDate.toString();
+                        String availabilityStatus = new String();
+                        try {
+                            availabilityStatus = campsiteAvailability.getAvailability().getAvailabilities().get(dateKey).toString();
+                        } catch (NullPointerException np) {
+                            availabilityStatus = "Unavailable"; // certain unavailable sites will not return any availability info so need to override that here
+                            //return "RG API Object Mapping Error";
+                        }
+                        // TODO consider changing assumption that user wants to stay in same site the entire time
+                        // break out of date availability loop if it is not available on one of the nights of the stays
+                        if (!availabilityStatus.equals("Available")) {
+                            break;
+                        }
+                        // if the site is available and we have checked all dates
+                        else if (dateHolder.compareTo(inputInfo.getCheckOutDate().minusDays(1)) == 0) {
+                            facHasAvailability = true;
+                        }
+                        dateHolder = dateHolder.plusDays(1);
                     }
 
                     // if a single campsite has availability, no need to check the rest
@@ -191,13 +214,7 @@ public class InputController {
         // TODO add weather and ratings to the two lists of facsInRad
 
         for (Facility f : facsInRadAvailable) {
-            // TODO copy in code here
-        }
-
-        // TODO consolidate repeated code block (above and below) into class
-        for (Facility f : facsInRadUnavailable) {
-            // places API: pass in campsite name and lat long, ask to receive name, rating
-            // TODO add location bias to this call
+            // google places API: pass in campsite name and lat long, receive google maps place information
             // example call: "https://maps.googleapis.com/maps/api/place/textsearch/json?input=CAMP%20GATEWAY%20-%20SANDY%20HOOK&locationbias=point:40,-74&key=AIzaSyDjzILiKx-IzTpbnq7B9B21DV3a7KyeQZc"
             StringBuilder facPlaceAPIUrlSB = new StringBuilder("https://maps.googleapis.com/maps/api/place/textsearch/json?input=");
             facPlaceAPIUrlSB.append(f.getRgFacilityName().replaceAll(" ", "%20"));
@@ -214,15 +231,39 @@ public class InputController {
                 facPlaceAPIUrl = new URL(facPlaceAPIUrlSB.toString());
                 facGooglePlace = facPlaceMapper.readValue(facPlaceAPIUrl, FacGooglePlace.class);
             } catch (Exception ex) {
-                // TODO figure out what to put here
+                return "Google Places API Call Error";
             }
-
             f.setGoogRating(facGooglePlace.getResultsRating());
             f.setGoogName(facGooglePlace.getResultsName());
             f.setGoogPlaceId(facGooglePlace.getResultsPlace_id());
             f.setGoogUserRatingsTotal(facGooglePlace.getResultsUser_Ratings_Total());
+        }
 
-            // TODO add link to places based on this call "https://www.google.com/maps/place/?q=place_id:ChIJp4JiUCNP0xQR1JaSjpW_Hms"
+        // TODO consolidate repeated code block (above and below) into class
+        for (Facility f : facsInRadUnavailable) {
+            // google places API: pass in campsite name and lat long, receive google maps place information
+            // example call: "https://maps.googleapis.com/maps/api/place/textsearch/json?input=CAMP%20GATEWAY%20-%20SANDY%20HOOK&locationbias=point:40,-74&key=AIzaSyDjzILiKx-IzTpbnq7B9B21DV3a7KyeQZc"
+            StringBuilder facPlaceAPIUrlSB = new StringBuilder("https://maps.googleapis.com/maps/api/place/textsearch/json?input=");
+            facPlaceAPIUrlSB.append(f.getRgFacilityName().replaceAll(" ", "%20"));
+            facPlaceAPIUrlSB.append("&locationbias=point:");
+            facPlaceAPIUrlSB.append(f.getLatitude());
+            facPlaceAPIUrlSB.append(",");
+            facPlaceAPIUrlSB.append(f.getLongitude());
+            facPlaceAPIUrlSB.append("&key=");
+            facPlaceAPIUrlSB.append(googleKey);
+            URL facPlaceAPIUrl = null;
+            ObjectMapper facPlaceMapper = new ObjectMapper();
+            FacGooglePlace facGooglePlace = new FacGooglePlace();
+            try {
+                facPlaceAPIUrl = new URL(facPlaceAPIUrlSB.toString());
+                facGooglePlace = facPlaceMapper.readValue(facPlaceAPIUrl, FacGooglePlace.class);
+            } catch (Exception ex) {
+                return "Google Places API Call Error";
+            }
+            f.setGoogRating(facGooglePlace.getResultsRating());
+            f.setGoogName(facGooglePlace.getResultsName());
+            f.setGoogPlaceId(facGooglePlace.getResultsPlace_id());
+            f.setGoogUserRatingsTotal(facGooglePlace.getResultsUser_Ratings_Total());
         }
 
         model.addAttribute("facsInRadAvailable",facsInRadAvailable);
