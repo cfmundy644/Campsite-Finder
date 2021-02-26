@@ -8,8 +8,7 @@ public class GeocodeAPICall {
     private Geocode geocode;
     private boolean success;
 
-    public GeocodeAPICall(InputInfo inputInfo, String googleKey) {
-        success = true;
+    public GeocodeAPICall(InputInfo inputInfo, String googleKey) throws Exception {
         // sample api call "https://maps.googleapis.com/maps/api/geocode/json?address=1600+Amphitheatre+Parkway,+Mountain+View,+CA&key=YOUR_API_KEY"
         StringBuilder geocodeAPIUrlSB = new StringBuilder("https://maps.googleapis.com/maps/api/geocode/json?address=");
         geocodeAPIUrlSB.append(inputInfo.getStreetAddress().replaceAll(" ", "%20"));
@@ -24,7 +23,7 @@ public class GeocodeAPICall {
             geocodeAPIUrl = new URL(geocodeAPIUrlSB.toString());
             geocode = geocodeMapper.readValue(geocodeAPIUrl, Geocode.class);
         } catch (Exception ex) {
-            success = false;
+            throw new Exception();
         }
     }
 

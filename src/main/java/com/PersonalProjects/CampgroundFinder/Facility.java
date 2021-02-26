@@ -23,6 +23,7 @@ public class Facility implements Comparable<Facility> {
 
     // following populated based on calcs
     private double dist;
+    private boolean available;
 
     public Integer getId() {return id;};
     public void setId(Integer id) {this.id = id;}
@@ -79,8 +80,19 @@ public class Facility implements Comparable<Facility> {
         this.dist = dist;
     }
 
+    public boolean isAvailable() {
+        return available;
+    }
+
+    public void setAvailable(boolean available) {
+        this.available = available;
+    }
+
     @Override
     public int compareTo(Facility that) {
+        if (this.available && !that.available) {return -1;}
+        else if (!this.available && that.available) {return 1;}
+
         if (this.dist < that.dist) {return -1;}
         else if (this.dist == that.dist) {return 0;}
         else {return 1;}
