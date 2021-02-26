@@ -95,4 +95,22 @@ public class InputInfo {
         latitude = geocode.getResults()[0].getGeometry().getLocation().getLat();
         longitude = geocode.getResults()[0].getGeometry().getLocation().getLng();
     }
+
+    public double calcDistToFac(Facility f) {
+        double lat1, lon1, lat2, lon2, dist;
+        lat1 = latitude;
+        lon1 = longitude;
+        lat2 = f.getLatitude();
+        lon2 = f.getLongitude();
+
+        // https://www.geodatasource.com/developers/java
+        double theta = lon1 - lon2;
+        double distHelper = Math.sin(Math.toRadians(lat1)) * Math.sin(Math.toRadians(lat2)) + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) * Math.cos(Math.toRadians(theta));
+        distHelper = Math.acos(distHelper);
+        distHelper = Math.toDegrees(distHelper);
+        distHelper = distHelper * 60 * 1.1515;
+        f.setDist(distHelper);
+        return distHelper;
+    }
+
 }

@@ -49,15 +49,9 @@ public class InputController {
 
         // go through all facilities, check if they are within radius from input address
         for (Facility f : allFacs) {
-            // TODO make lat longs to miles a method inside inputInfo
-            // calculate distance between input address and facility (campground)
-            LatLongsToMiles latLongsToMiles = new LatLongsToMiles(inputInfo.getLatitude(), inputInfo.getLongitude(), f.getLatitude(), f.getLongitude());
-            double dist = latLongsToMiles.getDist();
-            f.setDist(dist);
-
-            // if facility (campground) is within radius, check for availability
-            if (dist <= inputInfo.getRadius()) {
-                boolean facHasAvailability = false;
+            double dist = inputInfo.calcDistToFac(f); // calculate distance between input address and facility (campground)
+            if (dist <= inputInfo.getRadius()) { // if facility (campground) is within radius, check for availability
+                boolean facHasAvailability = false; // flips to yes if availability is found at any campsite at facility
 
                 // https://www.recreation.gov/api/camps/availability/campground/234718/month?start_date=2021-04-01T00%3A00%3A00.000Z
                 StringBuilder campgroundAvailabilityUrlSB = new StringBuilder();
