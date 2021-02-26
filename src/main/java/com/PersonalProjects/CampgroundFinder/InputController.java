@@ -7,6 +7,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import java.net.URL;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.TreeSet;
 
 @Controller
@@ -40,12 +41,12 @@ public class InputController {
     @RequestMapping("/showinfo")
     public String getSelectFacilities(@ModelAttribute InputInfo inputInfo, Model model) {
         Iterable<Facility> allFacs = facilityRepository.findAll();
-        TreeSet<Facility> facsInRadAvailable = new TreeSet<Facility>(); // facilities in radius with availability, ordered by distance
-        TreeSet<Facility> facsInRadUnavailable = new TreeSet<Facility>(); // facilities in radius with no availability, ordered by distance
+        TreeSet<Facility> facsInRad = new TreeSet<Facility>(); // facilities in radius
 
         // make call to Google Geocode API to convert input address to lat/long
-        GeocodeAPICall geocodeAPICall = new GeocodeAPICall(inputInfo, googleKey);
-        if (!geocodeAPICall.getSuccess()) {return "Google geocode API call error";} // check to see if the API call was successful, if not return error
+        GeocodeAPICall geocodeAPICall = null;
+        try {geocodeAPICall = new GeocodeAPICall(inputInfo, googleKey);}
+        catch (Exception ex) {return "Google geocode API call error";}
         Geocode geocode = geocodeAPICall.getGeocode();
         inputInfo.setLatitude(geocode.getResults()[0].getGeometry().getLocation().getLat());
         inputInfo.setLongitude(geocode.getResults()[0].getGeometry().getLocation().getLng());
@@ -114,46 +115,18 @@ public class InputController {
 
                     // if a single campsite has availability, no need to check the rest
                     if (facHasAvailability) {
-                        facsInRadAvailable.add(f);
+                        f.setAvailable(true);
                         break;
                     }
                 }
 
                 // if we make it through all campsites and there is no availability, add facility to unavailable list
-                if (!facHasAvailability) {facsInRadUnavailable.add(f);}
+                if (!facHasAvailability) {f.setAvailable(false);}
+                facsInRad.add(f);
             }
         }
-        // TODO add weather to the two lists of facsInRad
 
-        for (Facility f : facsInRadAvailable) {
-            // google places API: pass in campsite name and lat long, receive google maps place information
-            // example call: "https://maps.googleapis.com/maps/api/place/textsearch/json?input=CAMP%20GATEWAY%20-%20SANDY%20HOOK&locationbias=point:40,-74&key=AIzaSyDjzILiKx-IzTpbnq7B9B21DV3a7KyeQZc"
-            StringBuilder facPlaceAPIUrlSB = new StringBuilder("https://maps.googleapis.com/maps/api/place/textsearch/json?input=");
-            facPlaceAPIUrlSB.append(f.getRgFacilityName().replaceAll(" ", "%20"));
-            facPlaceAPIUrlSB.append("&locationbias=point:");
-            facPlaceAPIUrlSB.append(f.getLatitude());
-            facPlaceAPIUrlSB.append(",");
-            facPlaceAPIUrlSB.append(f.getLongitude());
-            facPlaceAPIUrlSB.append("&key=");
-            facPlaceAPIUrlSB.append(googleKey);
-            URL facPlaceAPIUrl = null;
-            ObjectMapper facPlaceMapper = new ObjectMapper();
-            FacGooglePlace facGooglePlace = new FacGooglePlace();
-            try {
-                facPlaceAPIUrl = new URL(facPlaceAPIUrlSB.toString());
-                facGooglePlace = facPlaceMapper.readValue(facPlaceAPIUrl, FacGooglePlace.class);
-            } catch (Exception ex) {
-                // return "Google Places API Call Error";
-                // ok to come up empty here
-            }
-            f.setGoogRating(facGooglePlace.getResultsRating());
-            f.setGoogName(facGooglePlace.getResultsName());
-            f.setGoogPlaceId(facGooglePlace.getResultsPlace_id());
-            f.setGoogUserRatingsTotal(facGooglePlace.getResultsUser_Ratings_Total());
-        }
-
-        // TODO consolidate repeated code block (above and below) into class
-        for (Facility f : facsInRadUnavailable) {
+        for (Facility f : facsInRad) {
             // google places API: pass in campsite name and lat long, receive google maps place information
             // example call: "https://maps.googleapis.com/maps/api/place/textsearch/json?input=CAMP%20GATEWAY%20-%20SANDY%20HOOK&locationbias=point:40,-74&key=AIzaSyDjzILiKx-IzTpbnq7B9B21DV3a7KyeQZc"
             StringBuilder facPlaceAPIUrlSB = new StringBuilder("https://maps.googleapis.com/maps/api/place/textsearch/json?input=");
@@ -180,8 +153,7 @@ public class InputController {
             f.setGoogUserRatingsTotal(facGooglePlace.getResultsUser_Ratings_Total());
         }
 
-        model.addAttribute("facsInRadAvailable",facsInRadAvailable);
-        model.addAttribute("facsInRadUnavailable",facsInRadUnavailable);
+        model.addAttribute("facsInRad",facsInRad);
         model.addAttribute("inputInfo", inputInfo);
         return "result";
     }

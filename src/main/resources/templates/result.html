@@ -10,61 +10,31 @@
 
     <table>
         <thead>
-            <tr>
-                <th> Available Campgrounds </th>
-            </tr>
-            <tr>
-                <th> Campground Name </th>
-                <th> Dist from Address </th>
-                <th> Google Place Name </th>
-                <th> Google Rating (Num. Reviews) </th>
-                <th> Link to google maps </th>
-                <th> Link to campground site </th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr th:if="${facsInRadAvailable.empty}">
-                <td colspan="2"> No available campsites in radius </td>
-            </tr>
-            <tr th:each="availableFac : ${facsInRadAvailable}">
-                <td th:text="${availableFac.rgFacilityName}">
-                <td th:text="${availableFac.dist}">
-                <td th:text="${availableFac.googName}" >
-                <td th:text="${availableFac.googRating} + '(' + ${availableFac.googUserRatingsTotal} + ')'">
-                <td><a th:href="@{'https://www.google.com/maps/place/?q=place_id:' + ${availableFac.googPlaceId}}"> Google Maps </a></td>
-                <td><a th:href="@{'https://www.recreation.gov/camping/campgrounds/' + ${availableFac.rgFacilityId}}"> Campground Website </a></td>
-            </tr>
-        </tbody>
-    </table>
-
-    <p><br></p>
-
-    <table>
-        <thead>
         <tr>
-            <th> Unavailable Campgrounds </th>
+            <th> Campgrounds in Radius </th>
         </tr>
         <tr>
             <th> Campground Name </th>
             <th> Dist from Address </th>
+            <th> Available? </th>
             <th> Google Place Name </th>
             <th> Google Rating (Num. Reviews) </th>
             <th> Link to google maps </th>
             <th> Link to campground site </th>
-
         </tr>
         </thead>
         <tbody>
-        <tr th:if="${facsInRadUnavailable.empty}">
-            <td colspan="2"> No unavailable campsites in radius </td>
+        <tr th:if="${facsInRad.empty}">
+            <td colspan="2"> No campsites in radius </td>
         </tr>
-        <tr th:each="unavailableFac : ${facsInRadUnavailable}">
-            <td th:text="${unavailableFac.rgFacilityName}">
-            <td th:text="${unavailableFac.dist}">
-            <td th:text="${unavailableFac.googName}">
-            <td th:text="${unavailableFac.googRating} + '(' + ${unavailableFac.googUserRatingsTotal} + ')'">
-            <td><a th:href="@{'https://www.google.com/maps/place/?q=place_id:' + ${unavailableFac.googPlaceId}}"> Google Maps </a></td>
-            <td><a th:href="@{'https://www.recreation.gov/camping/campgrounds/' + ${unavailableFac.rgFacilityId}}"> Campground Website </a></td>
+        <tr th:each="fac : ${facsInRad}">
+            <td th:text="${fac.rgFacilityName}">
+            <td th:text="${fac.dist}">
+            <td th:text="${fac.available}">
+            <td th:text="${fac.googName}">
+            <td th:text="${fac.googRating} + '(' + ${fac.googUserRatingsTotal} + ')'">
+            <td><a th:href="@{'https://www.google.com/maps/place/?q=place_id:' + ${fac.googPlaceId}}"> Google Maps </a></td>
+            <td><a th:href="@{'https://www.recreation.gov/camping/campgrounds/' + ${fac.rgFacilityId}}"> Campground Website </a></td>
         </tr>
         </tbody>
     </table>
