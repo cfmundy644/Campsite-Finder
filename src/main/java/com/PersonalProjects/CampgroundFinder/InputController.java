@@ -7,7 +7,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import java.net.URL;
 import java.time.LocalDate;
-import java.util.HashSet;
 import java.util.TreeSet;
 
 @Controller
@@ -60,25 +59,9 @@ public class InputController {
 
             // if facility (campground) is within radius, check for availability
             if (dist <= inputInfo.getRadius()) {
-                Iterable<Campsite> allCampsites = campsiteRepository.findAll();
-                HashSet<Campsite> campsitesAtFac = new HashSet<Campsite>();
-
-                // create hashset of all campsites at current facility
-                for (Campsite c : allCampsites) {
-                    if (c.getRgFacilityId().equals(f.getRgFacilityId())) {
-                        campsitesAtFac.add(c);
-                    }
-                }
-
                 boolean facHasAvailability = false;
 
-
-
-
-                // TODO investigate making alternate calls for facility here
-                // TODO create loops for months and years (create max two week stay - will need to validate)
                 // https://www.recreation.gov/api/camps/availability/campground/234718/month?start_date=2021-04-01T00%3A00%3A00.000Z
-
                 StringBuilder campgroundAvailabilityUrlSB = new StringBuilder();
                 campgroundAvailabilityUrlSB.append("https://www.recreation.gov/api/camps/availability/campground/");
                 campgroundAvailabilityUrlSB.append(f.getRgFacilityId());
@@ -91,51 +74,19 @@ public class InputController {
                 URL availabilityUrl = null;
                 ObjectMapper availabilityMapper = new ObjectMapper();
                 CampgroundAvailability campgroundAvailability = new CampgroundAvailability();
-                int counter = 0;
-                int maxAttempts = 10;
-                boolean apiCallSuccess = false;
-                // keep trying API call (10 times max) before returning error
-                while (!apiCallSuccess && counter < maxAttempts) {
-                    apiCallSuccess = true;
-                    try {
-                        availabilityUrl = new URL(campgroundAvailabilityUrlSB.toString());
-                        campgroundAvailability = availabilityMapper.readValue(availabilityUrl, CampgroundAvailability.class);
-                    } catch (Exception ex) {
-                        apiCallSuccess = false;
-                        counter++;
-                        /*
-                        try {
-                            Thread.sleep(500);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-
-                         */
-                        if (counter == maxAttempts) {
-                            model.addAttribute("availabilityapicallurl", campgroundAvailabilityUrlSB.toString());
-                            return "rgAPICallError";
-                        }
-                    }
+                try {
+                    availabilityUrl = new URL(campgroundAvailabilityUrlSB.toString());
+                    campgroundAvailability = availabilityMapper.readValue(availabilityUrl, CampgroundAvailability.class);
+                } catch (Exception ex) {
+                    model.addAttribute("availabilityapicallurl", campgroundAvailabilityUrlSB.toString());
+                    return "rgAPICallError";
                 }
 
-
                 // go through all campsites at facility to check for availability
-                for (Campsite d : campsitesAtFac) {
-                    // testing slowing down API calls to not get rate limited (which returns error pages)
-                    /*
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
-                     */
-
-
+                for (Campsites d : campgroundAvailability.getCampsites().values()) {
                     LocalDate dateHolder = inputInfo.getCheckInDate();
                     // cycle through all dates to check for availability across all nights, no need to check on check-out day
                     while (dateHolder.compareTo(inputInfo.getCheckOutDate()) < 0) {
-                        // TODO confirm all possible values for availability (ie. Available, Open, Unavailable, etc.)
                         StringBuilder stringBuilderDate = new StringBuilder();
                         stringBuilderDate.append(dateHolder.getYear());
                         stringBuilderDate.append("-");
@@ -146,12 +97,10 @@ public class InputController {
                         String dateKey = stringBuilderDate.toString();
                         String availabilityStatus = new String();
                         try {
-                            //availabilityStatus = campsiteAvailability.getAvailability().getAvailabilities().get(dateKey).toString();
-                            availabilityStatus = campgroundAvailability.getCampsites().get(d.getRgCampsiteId()).getAvailabilities().get(dateKey).toString();
+                            availabilityStatus = d.getAvailabilities().get(dateKey).toString();
                         } catch (NullPointerException np) {
                             availabilityStatus = "Unavailable"; // certain unavailable sites will not return any availability info so need to override that here
                         }
-                        // TODO consider changing assumption that user wants to stay in same site the entire time
                         // break out of date availability loop if it is not available on one of the nights of the stays
                         if (!availabilityStatus.equals("Available")) {
                             break;
@@ -174,7 +123,7 @@ public class InputController {
                 if (!facHasAvailability) {facsInRadUnavailable.add(f);}
             }
         }
-        // TODO add weather and ratings to the two lists of facsInRad
+        // TODO add weather to the two lists of facsInRad
 
         for (Facility f : facsInRadAvailable) {
             // google places API: pass in campsite name and lat long, receive google maps place information
@@ -235,7 +184,6 @@ public class InputController {
         model.addAttribute("facsInRadUnavailable",facsInRadUnavailable);
         model.addAttribute("inputInfo", inputInfo);
         return "result";
-
     }
 
     /* No need to add facilities manually via post
