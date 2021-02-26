@@ -40,19 +40,16 @@ public class InputController {
 
     @RequestMapping("/showinfo")
     public String getSelectFacilities(@ModelAttribute InputInfo inputInfo, Model model) {
-        Iterable<Facility> allFacs = facilityRepository.findAll();
-        TreeSet<Facility> facsInRad = new TreeSet<Facility>(); // facilities in radius
-
         // make call to Google Geocode API to convert input address to lat/long
-        GeocodeAPICall geocodeAPICall = null;
-        try {geocodeAPICall = new GeocodeAPICall(inputInfo, googleKey);}
+        try {inputInfo.setLatLong(googleKey);}
         catch (Exception ex) {return "Google geocode API call error";}
-        Geocode geocode = geocodeAPICall.getGeocode();
-        inputInfo.setLatitude(geocode.getResults()[0].getGeometry().getLocation().getLat());
-        inputInfo.setLongitude(geocode.getResults()[0].getGeometry().getLocation().getLng());
+
+        Iterable<Facility> allFacs = facilityRepository.findAll();
+        TreeSet<Facility> facsInRad = new TreeSet<Facility>(); // facilities in radius, ordered by availability, then distance
 
         // go through all facilities, check if they are within radius from input address
         for (Facility f : allFacs) {
+            // TODO make lat longs to miles a method inside inputInfo
             // calculate distance between input address and facility (campground)
             LatLongsToMiles latLongsToMiles = new LatLongsToMiles(inputInfo.getLatitude(), inputInfo.getLongitude(), f.getLatitude(), f.getLongitude());
             double dist = latLongsToMiles.getDist();
