@@ -52,8 +52,4 @@ public class FacGooglePlace {
         this.resultsUser_Ratings_Total = (int)results[0].get("user_ratings_total");
         this.resultsPlace_id = (String)results[0].get("place_id");
     }
-
-
-
-
 }

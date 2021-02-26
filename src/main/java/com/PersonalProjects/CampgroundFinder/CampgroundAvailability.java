@@ -6,13 +6,13 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CampgroundAvailability {
     // https://www.baeldung.com/jackson-nested-values
-    private Map<String, Campsites> campsites;
+    private Map<String, Campsite> campsites;
 
-    public Map<String, Campsites> getCampsites() {
+    public Map<String, Campsite> getCampsites() {
         return campsites;
     }
 
-    public void setCampsites(Map<String, Campsites> campsites) {
+    public void setCampsites(Map<String, Campsite> campsites) {
         this.campsites = campsites;
     }
 }

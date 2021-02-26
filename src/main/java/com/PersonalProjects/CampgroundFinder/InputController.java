@@ -7,16 +7,13 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import java.net.URL;
 import java.time.LocalDate;
-import java.util.HashSet;
+import java.util.Map;
 import java.util.TreeSet;
 
 @Controller
 public class InputController {
     @Autowired
     private FacilityRepository facilityRepository;
-
-    @Autowired
-    private CampsiteRepository campsiteRepository;
 
     private String googleKey = "AIzaSyDjzILiKx-IzTpbnq7B9B21DV3a7KyeQZc";
 
@@ -65,7 +62,7 @@ public class InputController {
 
                 URL availabilityUrl = null;
                 ObjectMapper availabilityMapper = new ObjectMapper();
-                CampgroundAvailability campgroundAvailability = new CampgroundAvailability();
+                CampgroundAvailability campgroundAvailability = null;
                 try {
                     availabilityUrl = new URL(campgroundAvailabilityUrlSB.toString());
                     campgroundAvailability = availabilityMapper.readValue(availabilityUrl, CampgroundAvailability.class);
@@ -75,7 +72,7 @@ public class InputController {
                 }
 
                 // go through all campsites at facility to check for availability
-                for (Campsites d : campgroundAvailability.getCampsites().values()) {
+                for (Campsite c : campgroundAvailability.getCampsites().values()) {
                     LocalDate dateHolder = inputInfo.getCheckInDate();
                     // cycle through all dates to check for availability across all nights, no need to check on check-out day
                     while (dateHolder.compareTo(inputInfo.getCheckOutDate()) < 0) {
@@ -89,7 +86,7 @@ public class InputController {
                         String dateKey = stringBuilderDate.toString();
                         String availabilityStatus = new String();
                         try {
-                            availabilityStatus = d.getAvailabilities().get(dateKey).toString();
+                            availabilityStatus = c.getAvailabilities().get(dateKey).toString();
                         } catch (NullPointerException np) {
                             availabilityStatus = "Unavailable"; // certain unavailable sites will not return any availability info so need to override that here
                         }

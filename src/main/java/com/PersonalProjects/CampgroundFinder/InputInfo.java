@@ -92,8 +92,8 @@ public class InputInfo {
         } catch (Exception ex) {
             throw new Exception();
         }
-        latitude = geocode.getResults()[0].getGeometry().getLocation().getLat();
-        longitude = geocode.getResults()[0].getGeometry().getLocation().getLng();
+        latitude = geocode.getResultsGeometryLocationLat();
+        longitude = geocode.getResultsGeometryLocationLng();
     }
 
     public double calcDistToFac(Facility f) {
