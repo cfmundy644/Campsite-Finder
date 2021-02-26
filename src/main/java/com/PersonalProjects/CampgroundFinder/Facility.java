@@ -6,7 +6,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 @Entity
-public class Facility {
+public class Facility implements Comparable<Facility> {
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
     private Integer id;
@@ -20,6 +20,9 @@ public class Facility {
     private double googRating;
     private int googUserRatingsTotal;
     private String googPlaceId;
+
+    // following populated based on calcs
+    private double dist;
 
     public Integer getId() {return id;};
     public void setId(Integer id) {this.id = id;}
@@ -67,4 +70,20 @@ public class Facility {
     public void setGoogPlaceId(String googPlaceId) {
         this.googPlaceId = googPlaceId;
     }
+
+    public double getDist() {
+        return dist;
+    }
+
+    public void setDist(double dist) {
+        this.dist = dist;
+    }
+
+    @Override
+    public int compareTo(Facility that) {
+        if (this.dist < that.dist) {return -1;}
+        else if (this.dist == that.dist) {return 0;}
+        else {return 1;}
+    }
+
 }

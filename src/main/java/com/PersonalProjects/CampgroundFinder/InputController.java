@@ -5,16 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.HttpURLConnection;
 import java.time.LocalDate;
-import java.util.Calendar;
-import java.util.Scanner;
-
 import java.util.HashSet;
-import java.awt.geom.Point2D;
+import java.util.TreeSet;
 
 @Controller
 public class InputController {
@@ -23,6 +17,8 @@ public class InputController {
 
     @Autowired
     private CampsiteRepository campsiteRepository;
+
+    private String googleKey = "AIzaSyDjzILiKx-IzTpbnq7B9B21DV3a7KyeQZc";
 
     @GetMapping("/testfile")
     public String testfile(Model model) {
@@ -42,62 +38,28 @@ public class InputController {
         return "inputinfo";
     }
 
-    /* shows the data that was input to input info
-    @RequestMapping("/showinfo")
-    public String inputinfoSubmit(@ModelAttribute InputInfo inputInfo, Model model) {
-        model.addAttribute("inputinfo", inputInfo);
-        return "result";
-    }
-     */
-
-    /* shows all facilities
-    @RequestMapping("/showinfo")
-    public @ResponseBody Iterable<Facility> getSelectFacilities() {
-        return facilityRepository.findAll();
-    }
-     */
-
     @RequestMapping("/showinfo")
     public String getSelectFacilities(@ModelAttribute InputInfo inputInfo, Model model) {
-        // TODO discuss putting below logic here vs. in a class with CMTH
         Iterable<Facility> allFacs = facilityRepository.findAll();
-        HashSet<Facility> facsInRadAvailable = new HashSet<Facility>(); // facilities in radius with availability
-        HashSet<Facility> facsInRadUnavailable = new HashSet<Facility>(); // facilities in radius with no availability
-        String googleKey = "AIzaSyDjzILiKx-IzTpbnq7B9B21DV3a7KyeQZc";
+        TreeSet<Facility> facsInRadAvailable = new TreeSet<Facility>(); // facilities in radius with availability, ordered by distance
+        TreeSet<Facility> facsInRadUnavailable = new TreeSet<Facility>(); // facilities in radius with no availability, ordered by distance
 
-        // sample api call "https://maps.googleapis.com/maps/api/geocode/json?address=1600+Amphitheatre+Parkway,+Mountain+View,+CA&key=YOUR_API_KEY"
-        StringBuilder geocodeAPIUrlSB = new StringBuilder("https://maps.googleapis.com/maps/api/geocode/json?address=");
-        geocodeAPIUrlSB.append(inputInfo.getStreetAddress().replaceAll(" ", "%20"));
-        geocodeAPIUrlSB.append(",%20");
-        geocodeAPIUrlSB.append(inputInfo.getCity().replaceAll(" ", "%20"));
-        geocodeAPIUrlSB.append(",%20");
-        geocodeAPIUrlSB.append("&key=");
-        geocodeAPIUrlSB.append(googleKey);
-        URL geocodeAPIUrl = null;
-        ObjectMapper geocodeMapper = new ObjectMapper();
-        Geocode geocode = new Geocode();
-        try {
-            geocodeAPIUrl = new URL(geocodeAPIUrlSB.toString());
-            geocode = geocodeMapper.readValue(geocodeAPIUrl, Geocode.class);
-        } catch (Exception ex) {
-            return "Google geocoder API Call Error";
-        }
-
+        // make call to Google Geocode API to convert input address to lat/long
+        GeocodeAPICall geocodeAPICall = new GeocodeAPICall(inputInfo, googleKey);
+        if (!geocodeAPICall.getSuccess()) {return "Google geocode API call error";} // check to see if the API call was successful, if not return error
+        Geocode geocode = geocodeAPICall.getGeocode();
         inputInfo.setLatitude(geocode.getResults()[0].getGeometry().getLocation().getLat());
         inputInfo.setLongitude(geocode.getResults()[0].getGeometry().getLocation().getLng());
 
+        // go through all facilities, check if they are within radius from input address
         for (Facility f : allFacs) {
-            double lon1 = inputInfo.getLongitude();
-            double lat1 = inputInfo.getLatitude();
-
-            double lon2 = f.getLongitude();
-            double lat2 = f.getLatitude();
-
-            LatLongsToMiles latLongsToMiles = new LatLongsToMiles(lat1, lon1, lat2, lon2);
+            // calculate distance between input address and facility (campground)
+            LatLongsToMiles latLongsToMiles = new LatLongsToMiles(inputInfo.getLatitude(), inputInfo.getLongitude(), f.getLatitude(), f.getLongitude());
             double dist = latLongsToMiles.getDist();
+            f.setDist(dist);
 
+            // if facility (campground) is within radius, check for availability
             if (dist <= inputInfo.getRadius()) {
-                // TODO need to optimize this database call
                 Iterable<Campsite> allCampsites = campsiteRepository.findAll();
                 HashSet<Campsite> campsitesAtFac = new HashSet<Campsite>();
 
