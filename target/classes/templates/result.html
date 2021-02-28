@@ -1,0 +1,56 @@
+<!DOCTYPE HTML>
+<html xmlns:th="https://www.thymeleaf.org">
+<head>
+    <title>Trip Information</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        thead, tr, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            padding: 2px;
+        }
+
+    </style>
+</head>
+<body>
+    <p th:text="'Address: ' + ${inputInfo.streetAddress} + ', ' + ${inputInfo.city} + ', ' + ${inputInfo.state} + ', ' + ${inputInfo.zip}">
+    <p th:text="'Radius: ' + ${inputInfo.radius} + ' miles'" >
+    <p th:text="'Check-In Date: ' + ${inputInfo.checkInDate}" >
+    <p th:text="'Check-Out Date: ' + ${inputInfo.checkOutDate}" >
+
+    <table>
+        <thead>
+        <tr>
+            <th colspan="7"> Campgrounds in Radius </th>
+        </tr>
+        <tr>
+            <th style="text-align:left"> Campground Name</th>
+            <th> Available? </th>
+            <th> Dist from Address </th>
+            <th style="text-align:left"> Google Place Name </th>
+            <th> Google Rating (Num. Reviews) </th>
+            <th style="text-align:left"> Link to google maps </th>
+            <th style="text-align:left"> Link to campground site </th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:if="${facsInRad.empty}">
+            <td colspan="2"> No campsites in radius </td>
+        </tr>
+        <tr th:each="fac : ${facsInRad}" th:style="${fac.available} == TRUE ? 'background-color: LightGreen' : 'background-color: LightCoral'">
+            <td th:text="${fac.rgFacilityName}">
+            <td th:text="${fac.available}">
+            <td th:text="${#numbers.formatDecimal(fac.dist, 0, 1)}" style="text-align:center">
+            <td th:text="${fac.googName}">
+            <td th:text="${fac.googRating} + ' (' + ${fac.googUserRatingsTotal} + ')'" style="text-align:center">
+            <td><a th:href="@{'https://www.google.com/maps/place/?q=place_id:' + ${fac.googPlaceId}}"> Google Maps </a></td>
+            <td><a th:href="@{'https://www.recreation.gov/camping/campgrounds/' + ${fac.rgFacilityId}}"> Campground Website </a></td>
+        </tr>
+        </tbody>
+    </table>
+</body>
+</html>
