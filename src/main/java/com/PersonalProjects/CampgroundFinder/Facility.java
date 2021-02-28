@@ -138,28 +138,55 @@ public class Facility implements Comparable<Facility> {
 
     public void callAvailabilityAPI(InputInfo inputInfo) throws Exception {
         boolean facHasAvailability = false; // flips to yes if availability is found at any campsite at facility
-        URL availabilityUrl = null;
-        ObjectMapper availabilityMapper = new ObjectMapper();
-        CampgroundAvailability campgroundAvailability = null;
+        URL availabilityUrl1 = null;
+        URL availabilityUrl2 = null; // populate for next month in case trip leaks into next month
+        ObjectMapper availabilityMapper1 = new ObjectMapper();
+        ObjectMapper availabilityMapper2 = new ObjectMapper();
+        CampgroundAvailability campgroundAvailability1 = null;
+        CampgroundAvailability campgroundAvailability2 = null;
         try {
-            availabilityUrl = new URL(createRgAvailApiString(inputInfo));
-            campgroundAvailability = availabilityMapper.readValue(availabilityUrl, CampgroundAvailability.class);
+            availabilityUrl1 = new URL(createRgAvailApiString(inputInfo.getCheckInDate()));
+            availabilityUrl2 = new URL(createRgAvailApiString(inputInfo.getCheckInDate().plusMonths(1)));
+            campgroundAvailability1 = availabilityMapper1.readValue(availabilityUrl1, CampgroundAvailability.class);
+            campgroundAvailability2 = availabilityMapper1.readValue(availabilityUrl2, CampgroundAvailability.class);
         } catch (Exception ex) {
             throw new Exception();
         }
-
+        Iterable<Campsite> campsitesAtFac = campgroundAvailability1.getCampsites().values();
         // go through all campsites at facility to check for availability
-        for (Campsite c : campgroundAvailability.getCampsites().values()) {
+        for (Campsite c : campsitesAtFac) {
             LocalDate dateHolder = inputInfo.getCheckInDate();
             // cycle through all dates to check for availability across all nights, no need to check on check-out day
             while (dateHolder.compareTo(inputInfo.getCheckOutDate()) < 0) {
                 String dateKey = createRgDateString(dateHolder);
                 String availabilityStatus;
-                try {
-                    availabilityStatus = c.getAvailabilities().get(dateKey).toString();
-                } catch (NullPointerException np) {
-                    availabilityStatus = "Unavailable"; // certain unavailable sites will not return any availability info so need to override that here
+
+                // if we are still in the same month as check in date, stick with first month of data, otherwise look to second month of data
+                if (dateHolder.getMonthValue() == inputInfo.getCheckInDate().getMonthValue()) {
+                    if (campgroundAvailability1.getCampsites().get(c.getCampsite_id()).getAvailabilities().isEmpty()) {
+                        availabilityStatus = "Unavailable"; // certain unavailable sites will not return any availability info so need to override that here
+                    }
+                    else {
+                        try {
+                            availabilityStatus = campgroundAvailability1.getCampsites().get(c.getCampsite_id()).getAvailabilities().get(dateKey).toString();
+                        } catch (NullPointerException np) {
+                            throw new Error();
+                        }
+                    }
                 }
+                else {
+                    if (campgroundAvailability2.getCampsites().get(c.getCampsite_id()).getAvailabilities().isEmpty()) {
+                        availabilityStatus = "Unavailable"; // certain unavailable sites will not return any availability info so need to override that here
+                    }
+                    else {
+                        try {
+                            availabilityStatus = campgroundAvailability2.getCampsites().get(c.getCampsite_id()).getAvailabilities().get(dateKey).toString();
+                        } catch (NullPointerException np) {
+                            throw new Error();
+                        }
+                    }
+                }
+
                 // break out of date availability loop if it is not available on one of the nights of the stays
                 if (!availabilityStatus.equals("Available")) {
                     break;
@@ -195,15 +222,15 @@ public class Facility implements Comparable<Facility> {
         return stringBuilderDate.toString();
     }
 
-    private String createRgAvailApiString(InputInfo inputInfo) {
+    private String createRgAvailApiString(LocalDate dateHolder) {
         // https://www.recreation.gov/api/camps/availability/campground/234718/month?start_date=2021-04-01T00%3A00%3A00.000Z
         StringBuilder campgroundAvailabilityUrlSB = new StringBuilder();
         campgroundAvailabilityUrlSB.append("https://www.recreation.gov/api/camps/availability/campground/");
         campgroundAvailabilityUrlSB.append(rgFacilityId);
         campgroundAvailabilityUrlSB.append("/month?start_date=");
-        campgroundAvailabilityUrlSB.append(inputInfo.getCheckInDate().getYear());
+        campgroundAvailabilityUrlSB.append(dateHolder.getYear());
         campgroundAvailabilityUrlSB.append("-");
-        campgroundAvailabilityUrlSB.append(String.format("%02d", inputInfo.getCheckInDate().getMonthValue()));
+        campgroundAvailabilityUrlSB.append(String.format("%02d", dateHolder.getMonthValue()));
         campgroundAvailabilityUrlSB.append("-01T00%3A00%3A00.000Z"); // this api call only accepts the first of the month
         return campgroundAvailabilityUrlSB.toString();
     }
