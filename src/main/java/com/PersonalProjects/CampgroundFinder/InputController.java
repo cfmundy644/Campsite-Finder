@@ -4,11 +4,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.TreeSet;
+import java.time.temporal.ChronoUnit;
+
 
 @Controller
 public class InputController {
@@ -37,6 +42,16 @@ public class InputController {
 
     @RequestMapping("/showinfo")
     public String getSelectFacilities(@ModelAttribute InputInfo inputInfo, Model model) {
+        // check that inputs don't break validation rules
+        int maxRadius = 250;
+        int maxTripLengthDays = 14;
+        long inputTripLengthDays = ChronoUnit.DAYS.between(inputInfo.getCheckInDate(), inputInfo.getCheckOutDate());
+        if (inputInfo.getRadius() > maxRadius || inputTripLengthDays > maxTripLengthDays) {
+            model.addAttribute("message", "Inputs not valid");
+            inputinfoForm(model);
+            return "inputinfo";
+        }
+
         // make call to Google Geocode API to convert input address to lat/long
         try {inputInfo.setLatLong(googleKey);}
         catch (Exception ex) {return "Google geocode API call error";}
@@ -44,10 +59,19 @@ public class InputController {
         Iterable<Facility> allFacs = facilityRepository.findAll();
         TreeSet<Facility> facsInRad = new TreeSet<Facility>(); // facilities in radius, ordered by availability, then distance
 
+        int numFacsInRad = 0; // add counter that breaks search if too many facilities are in the radius (to avoid too many calls to Google places API)
+        int maxFacsInRad = 30;
+
         // go through all facilities, check if they are within radius from input address
         for (Facility f : allFacs) {
             double dist = inputInfo.calcDistToFac(f); // calculate distance between input address and facility (campground)
             if (dist <= inputInfo.getRadius()) { // if facility (campground) is within radius, check for availability
+                numFacsInRad++;
+                if (numFacsInRad > maxFacsInRad) {
+                    inputinfoForm(model);
+                    model.addAttribute("message", "Too many campgrounds in radius, please decrease radius");
+                    return "inputinfo";
+                }
                 try {f.callAvailabilityAPI(inputInfo);}
                 catch (Exception ex) {return "rgAPICallError";}
                 facsInRad.add(f); // add facs to facsInRad after populating availability info (used by comparator)

@@ -263,6 +263,7 @@ public class Facility implements Comparable<Facility> {
         return facPlaceAPIUrlSB.toString();
     }
 
+    /*
     public void callWeatherAPI() throws Exception {
         // TODO update
         // google places API: pass in campsite name and lat long, receive google maps place information
@@ -294,5 +295,7 @@ public class Facility implements Comparable<Facility> {
         facPlaceAPIUrlSB.append();
         return facPlaceAPIUrlSB.toString();
     }
+
+     */
 
 }

@@ -5,6 +5,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URL;
 import java.time.LocalDate;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.NotNull;
 
 public class InputInfo {
     private String streetAddress;
