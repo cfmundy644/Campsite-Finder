@@ -33,8 +33,6 @@ public class Facility implements Comparable<Facility> {
         return id;
     }
 
-    ;
-
     public void setId(Integer id) {
         this.id = id;
     }
@@ -264,4 +262,37 @@ public class Facility implements Comparable<Facility> {
         facPlaceAPIUrlSB.append(googleKey);
         return facPlaceAPIUrlSB.toString();
     }
+
+    public void callWeatherAPI() throws Exception {
+        // TODO update
+        // google places API: pass in campsite name and lat long, receive google maps place information
+        URL facPlaceAPIUrl = null;
+        ObjectMapper facPlaceMapper = new ObjectMapper();
+        FacGooglePlace facGooglePlace = new FacGooglePlace();
+        try {
+            facPlaceAPIUrl = new URL(createGoogPlaceAPICallString());
+            facGooglePlace = facPlaceMapper.readValue(facPlaceAPIUrl, FacGooglePlace.class);
+        } catch (Exception ex) {
+            // ok to come up empty here (if google can't find facility)
+        }
+        googRating = facGooglePlace.getResultsRating();
+        googName = facGooglePlace.getResultsName();
+        googPlaceId = facGooglePlace.getResultsPlace_id();
+        googUserRatingsTotal = facGooglePlace.getResultsUser_Ratings_Total();
+    }
+
+    private String createWeatherAPICallString() {
+        // TODO update
+        // example call: "https://maps.googleapis.com/maps/api/place/textsearch/json?input=CAMP%20GATEWAY%20-%20SANDY%20HOOK&locationbias=point:40,-74&key=AIzaSyDjzILiKx-IzTpbnq7B9B21DV3a7KyeQZc"
+        StringBuilder facPlaceAPIUrlSB = new StringBuilder("https://maps.googleapis.com/maps/api/place/textsearch/json?input=");
+        facPlaceAPIUrlSB.append(rgFacilityName.replaceAll(" ", "%20"));
+        facPlaceAPIUrlSB.append("%20campground&locationbias=point:");
+        facPlaceAPIUrlSB.append(latitude);
+        facPlaceAPIUrlSB.append(",");
+        facPlaceAPIUrlSB.append(longitude);
+        facPlaceAPIUrlSB.append("&key=");
+        facPlaceAPIUrlSB.append();
+        return facPlaceAPIUrlSB.toString();
+    }
+
 }
