@@ -2,11 +2,8 @@ package com.PersonalProjects.CampgroundFinder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.format.annotation.DateTimeFormat;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URL;
 import java.time.LocalDate;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.NotNull;
 
 public class InputInfo {
     private String streetAddress;
@@ -20,14 +17,14 @@ public class InputInfo {
     @DateTimeFormat(pattern="yyyy-MM-dd")
     private LocalDate checkOutDate;
 
-    private double latitude;
-    private double longitude;
+    private float latitude;
+    private float longitude;
 
-    public double getLatitude() {return latitude;}
-    public void setLatitude(double latitude) {this.latitude = latitude;}
+    public float getLatitude() {return latitude;}
+    public void setLatitude(float latitude) {this.latitude = latitude;}
 
-    public double getLongitude() {return longitude;}
-    public void setLongitude(double longitude) {this.longitude = longitude;}
+    public float getLongitude() {return longitude;}
+    public void setLongitude(float longitude) {this.longitude = longitude;}
 
     private int radius;
 
@@ -73,7 +70,6 @@ public class InputInfo {
     public void setCheckOutDate(LocalDate checkOutDate) {this.checkOutDate = checkOutDate;}
 
     public void setLatLong(String googleKey) throws Exception {
-
         // sample api call "https://maps.googleapis.com/maps/api/geocode/json?address=1600+Amphitheatre+Parkway,+Mountain+View,+CA&key=YOUR_API_KEY"
         StringBuilder geocodeAPIUrlSB = new StringBuilder("https://maps.googleapis.com/maps/api/geocode/json?address=");
         geocodeAPIUrlSB.append(streetAddress.replaceAll(" ", "%20"));
@@ -98,19 +94,20 @@ public class InputInfo {
         longitude = geocode.getResultsGeometryLocationLng();
     }
 
-    public double calcDistToFac(Facility f) {
-        double lat1, lon1, lat2, lon2, dist;
+    public float calcDistToFac(Facility f) {
+        float lat1, lon1, lat2, lon2, dist;
         lat1 = latitude;
         lon1 = longitude;
         lat2 = f.getLatitude();
         lon2 = f.getLongitude();
 
         // https://www.geodatasource.com/developers/java
-        double theta = lon1 - lon2;
-        double distHelper = Math.sin(Math.toRadians(lat1)) * Math.sin(Math.toRadians(lat2)) + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) * Math.cos(Math.toRadians(theta));
-        distHelper = Math.acos(distHelper);
-        distHelper = Math.toDegrees(distHelper);
-        distHelper = distHelper * 60 * 1.1515;
+        float theta = lon1 - lon2;
+        double distHelperDouble = Math.sin(Math.toRadians(lat1)) * Math.sin(Math.toRadians(lat2)) + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) * Math.cos(Math.toRadians(theta));
+        float distHelper = (float) distHelperDouble;
+        distHelper = (float) Math.acos(distHelper);
+        distHelper = (float) Math.toDegrees(distHelper);
+        distHelper = (float) (distHelper * 60 * 1.1515);
         f.setDist(distHelper);
         return distHelper;
     }
