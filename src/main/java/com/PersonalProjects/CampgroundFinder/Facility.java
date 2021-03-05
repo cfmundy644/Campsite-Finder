@@ -1,7 +1,6 @@
 package com.PersonalProjects.CampgroundFinder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -16,17 +15,17 @@ public class Facility implements Comparable<Facility> {
     private Integer id;
     private String rgFacilityId; // rg = recreation.gov
     private String rgFacilityName;
-    private double latitude;
-    private double longitude;
+    private float latitude;
+    private float longitude;
 
     // following populated based on Google Place API
     private String googName;
-    private double googRating;
+    private float googRating;
     private int googUserRatingsTotal;
     private String googPlaceId;
 
     // following populated based on calcs
-    private double dist;
+    private float dist;
     private boolean available;
 
     public Integer getId() {
@@ -53,19 +52,19 @@ public class Facility implements Comparable<Facility> {
         this.rgFacilityName = rgFacilityName;
     }
 
-    public double getLatitude() {
+    public float getLatitude() {
         return latitude;
     }
 
-    public void setLatitude(double latitude) {
+    public void setLatitude(float latitude) {
         this.latitude = latitude;
     }
 
-    public double getLongitude() {
+    public float getLongitude() {
         return longitude;
     }
 
-    public void setLongitude(double longitude) {
+    public void setLongitude(float longitude) {
         this.longitude = longitude;
     }
 
@@ -77,11 +76,11 @@ public class Facility implements Comparable<Facility> {
         this.googName = googName;
     }
 
-    public double getGoogRating() {
+    public float getGoogRating() {
         return googRating;
     }
 
-    public void setGoogRating(double googRating) {
+    public void setGoogRating(float googRating) {
         this.googRating = googRating;
     }
 
@@ -101,11 +100,11 @@ public class Facility implements Comparable<Facility> {
         this.googPlaceId = googPlaceId;
     }
 
-    public double getDist() {
+    public float getDist() {
         return dist;
     }
 
-    public void setDist(double dist) {
+    public void setDist(float dist) {
         this.dist = dist;
     }
 
@@ -168,7 +167,7 @@ public class Facility implements Comparable<Facility> {
                         try {
                             availabilityStatus = campgroundAvailability1.getCampsites().get(c.getCampsite_id()).getAvailabilities().get(dateKey).toString();
                         } catch (NullPointerException np) {
-                            throw new Error();
+                            availabilityStatus = "Unavailable"; // certain sites will return partial availability if only bookable in part of the month
                         }
                     }
                 }
@@ -180,7 +179,7 @@ public class Facility implements Comparable<Facility> {
                         try {
                             availabilityStatus = campgroundAvailability2.getCampsites().get(c.getCampsite_id()).getAvailabilities().get(dateKey).toString();
                         } catch (NullPointerException np) {
-                            throw new Error();
+                            availabilityStatus = "Unavailable"; // certain sites will return partial availability if only bookable in part of the month
                         }
                     }
                 }
@@ -262,37 +261,4 @@ public class Facility implements Comparable<Facility> {
         facPlaceAPIUrlSB.append(googleKey);
         return facPlaceAPIUrlSB.toString();
     }
-
-    public void callWeatherAPI() throws Exception {
-        // TODO update
-        // google places API: pass in campsite name and lat long, receive google maps place information
-        URL facPlaceAPIUrl = null;
-        ObjectMapper facPlaceMapper = new ObjectMapper();
-        FacGooglePlace facGooglePlace = new FacGooglePlace();
-        try {
-            facPlaceAPIUrl = new URL(createGoogPlaceAPICallString());
-            facGooglePlace = facPlaceMapper.readValue(facPlaceAPIUrl, FacGooglePlace.class);
-        } catch (Exception ex) {
-            // ok to come up empty here (if google can't find facility)
-        }
-        googRating = facGooglePlace.getResultsRating();
-        googName = facGooglePlace.getResultsName();
-        googPlaceId = facGooglePlace.getResultsPlace_id();
-        googUserRatingsTotal = facGooglePlace.getResultsUser_Ratings_Total();
-    }
-
-    private String createWeatherAPICallString() {
-        // TODO update
-        // example call: "https://maps.googleapis.com/maps/api/place/textsearch/json?input=CAMP%20GATEWAY%20-%20SANDY%20HOOK&locationbias=point:40,-74&key=AIzaSyDjzILiKx-IzTpbnq7B9B21DV3a7KyeQZc"
-        StringBuilder facPlaceAPIUrlSB = new StringBuilder("https://maps.googleapis.com/maps/api/place/textsearch/json?input=");
-        facPlaceAPIUrlSB.append(rgFacilityName.replaceAll(" ", "%20"));
-        facPlaceAPIUrlSB.append("%20campground&locationbias=point:");
-        facPlaceAPIUrlSB.append(latitude);
-        facPlaceAPIUrlSB.append(",");
-        facPlaceAPIUrlSB.append(longitude);
-        facPlaceAPIUrlSB.append("&key=");
-        facPlaceAPIUrlSB.append();
-        return facPlaceAPIUrlSB.toString();
-    }
-
 }

@@ -5,22 +5,22 @@ import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Geocode {
-    private double resultsGeometryLocationLat;
-    private double resultsGeometryLocationLng;
+    private float resultsGeometryLocationLat;
+    private float resultsGeometryLocationLng;
 
-    public double getResultsGeometryLocationLat() {
+    public float getResultsGeometryLocationLat() {
         return resultsGeometryLocationLat;
     }
 
-    public void setResultsGeometryLocationLat(double resultsGeometryLocationLat) {
+    public void setResultsGeometryLocationLat(float resultsGeometryLocationLat) {
         this.resultsGeometryLocationLat = resultsGeometryLocationLat;
     }
 
-    public double getResultsGeometryLocationLng() {
+    public float getResultsGeometryLocationLng() {
         return resultsGeometryLocationLng;
     }
 
-    public void setResultsGeometryLocationLng(double resultsGeometryLocationLng) {
+    public void setResultsGeometryLocationLng(float resultsGeometryLocationLng) {
         this.resultsGeometryLocationLng = resultsGeometryLocationLng;
     }
 
@@ -29,7 +29,9 @@ public class Geocode {
     private void unpackNested(Map<String,Object> results[]) {
         Map<String, Object> geometry = (Map<String, Object>)results[0].get("geometry");
         Map<String, Object> location = (Map<String, Object>)geometry.get("location");
-        this.resultsGeometryLocationLat = (double)location.get("lat");
-        this.resultsGeometryLocationLng = (double)location.get("lng");
+        double resultsGeometryLocationLatDouble = (double) (location.get("lat"));
+        double resultsGeometryLocationLngDouble = (double) (location.get("lng"));
+        this.resultsGeometryLocationLat = (float) resultsGeometryLocationLatDouble;
+        this.resultsGeometryLocationLng = (float) resultsGeometryLocationLngDouble;
     }
 }

@@ -5,6 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 </head>
 <body>
+        <p th:text="${message}" style="color:red"/>
         <h1>Trip Information</h1>
         <h2>Trip Starting Point</h2>
     <form action="#" th:action="@{/showinfo}" th:object="${inputinfo}" method="post">
@@ -14,9 +15,9 @@
         <p>Zip Code: <input type="text" th:field="*{zip}" /></p>
 
         <h2>Other Trip Information</h2>
-        <p>Trip Max Radius (Miles): <input type="text" th:field="*{radius}" /></p>
+        <p>Trip Max Radius (Miles): <input type="text" th:field="*{radius}" />*max 250 miles</p>
         <p>Trip Check In Date: <input type="date" th:field="*{checkInDate}" /></p>
-        <p>Trip Check Out Date: <input type="date" th:field="*{checkOutDate}" /></p>
+        <p>Trip Check Out Date: <input type="date" th:field="*{checkOutDate}" />*max 14 day stay</p>
         <p><input type="submit" value="Submit" /> <input type="reset" value="Reset" /></p>
     </form>
 </body>
