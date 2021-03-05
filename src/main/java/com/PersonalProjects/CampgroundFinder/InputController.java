@@ -15,7 +15,10 @@ import java.time.temporal.ChronoUnit;
 
 @Controller
 public class InputController {
-    private static final String GOOGLE_KEY = "AIzaSyDjzILiKx-IzTpbnq7B9B21DV3a7KyeQZc";
+    // TODO delete
+    //private static final String GOOGLE_KEY = "AIzaSyDjzILiKx-IzTpbnq7B9B21DV3a7KyeQZc";
+    private static Secret secret;
+    private static final String GOOGLE_KEY = secret.getSecret();
     private static final int MAX_RADIUS = 250;
     private static final int MAX_TRIP_LENGTH_DAYS = 14;
     private static final int MAX_FACILITIES_IN_RADIUS = 50;
