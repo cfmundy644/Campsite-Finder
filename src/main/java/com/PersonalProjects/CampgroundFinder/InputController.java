@@ -15,8 +15,6 @@ import java.time.temporal.ChronoUnit;
 
 @Controller
 public class InputController {
-    // TODO delete
-    //private static final String GOOGLE_KEY = "AIzaSyDjzILiKx-IzTpbnq7B9B21DV3a7KyeQZc";
     private static Secret secret;
     private static final String GOOGLE_KEY = secret.getSecret();
     private static final int MAX_RADIUS = 250;
