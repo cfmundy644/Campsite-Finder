@@ -48,7 +48,8 @@ public class FacGooglePlace {
     @JsonProperty("results")
     private void unpackNested(Map<String,Object> results[]) {
         this.resultsName = (String)results[0].get("name");
-        this.resultsRating = (float)results[0].get("rating");
+        Double doubleRating = (double) results[0].get("rating");
+        this.resultsRating = doubleRating.floatValue();
         this.resultsUser_Ratings_Total = (int)results[0].get("user_ratings_total");
         this.resultsPlace_id = (String)results[0].get("place_id");
     }

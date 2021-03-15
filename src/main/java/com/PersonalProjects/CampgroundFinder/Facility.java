@@ -1,6 +1,7 @@
 package com.PersonalProjects.CampgroundFinder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
