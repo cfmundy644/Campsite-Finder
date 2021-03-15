@@ -2,7 +2,7 @@ package com.PersonalProjects.CampgroundFinder;
 
 import org.springframework.data.repository.CrudRepository;
 
-// This will be AUTO IMPLEMENTED by Spring into a Bean called userRepository
+// This will be AUTO IMPLEMENTED by Spring into a Bean called facilityRepository
 // CRUD refers Create, Read, Update, Delete
 
 public interface FacilityRepository extends CrudRepository<Facility, Integer> {
