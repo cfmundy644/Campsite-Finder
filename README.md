@@ -2,13 +2,13 @@
 ### Web app to pull availability (based on travel dates) and review data for campgrounds within a certain radius of a location chosen by user ###
 	
 1. **User enters an address, a radius that they are willing to travel, and planned travel dates**
-2. **App converts address to lat / long using Google Geocoding API**
-3. **App checks database (of campgrounds) to find campgrounds within the radius (Federally managed campgrounds only, from recreation.gov RIDB project)**
+2. **App converts address to lat / long using [Google Geocoding API](https://developers.google.com/maps/documentation/geocoding/overview)**
+3. **App checks AWS database containing a list of campgrounds and corresponding lat / longs to find campgrounds within the radius (campgrounds from [Recreation.gov RIDB project](https://ridb.recreation.gov/))**
 4. **For campgrounds in radius, app does the following:**
 	1. App makes calls to the recreation.gov api to check availability at those campgrounds over the planned travel dates
-	2. App makes calls to Google Places API to get campground ratings
+	2. App makes calls to [Google Places API](https://developers.google.com/maps/documentation/places/web-service/overview) to get campground ratings
 	3. *Future features:*
-		1. *app makes calls to other rating sites to get campground rating (such as Tripadvisor)*
-		2. *app makes calls to a weather data API to find projected weather (during trip dates)*
-		3. *app makes calls to rec gov ratings and cell reception ratings info*
+		1. *App makes calls to other rating sites to get campground rating (such as Tripadvisor)*
+		2. *App makes calls to a weather data API to find projected weather (during trip dates)*
+		3. *App makes calls to rec gov ratings and cell reception ratings info*
 5. **App sorts list of campgrounds in radius by availability, then distance, and return as table to user**
