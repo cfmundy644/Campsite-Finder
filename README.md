@@ -7,7 +7,8 @@
 4. **For campgrounds in radius, app does the following:**
 	1. App makes calls to the recreation.gov api to check availability at those campgrounds over the planned travel dates
 	2. App makes calls to google maps API to get campground ratings
-	3. Future feature: app makes calls to other rating sites to get campground rating (see if the dyrt has an API)
-	4. Future feature: app makes calls to the open weather API to find projected weather (on trip dates)
-	5. Future feature: app makes calls to rec gov ratings and cell reception ratings info
+	3. *Future features:*
+		1. *app makes calls to other rating sites to get campground rating (such as Tripadvisor)*
+		2. *app makes calls to a weather data API to find projected weather (during trip dates)*
+		3. *app makes calls to rec gov ratings and cell reception ratings info*
 5. **App sorts list of campgrounds in radius by availability, then distance, and return as table to user**
