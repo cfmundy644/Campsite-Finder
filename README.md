@@ -15,6 +15,6 @@
 
 
 ### Input Page Screenshot
-![](https://github.com/cfmundy644/Campsite-Finder/blob/main/screenshot1.png?raw=true)\
+![](https://github.com/cfmundy644/Campsite-Finder/blob/main/screenshot1.png?raw=true)
 ### Results Page Screenshot
 ![](https://github.com/cfmundy644/Campsite-Finder/blob/main/screenshot2.png?raw=true)
