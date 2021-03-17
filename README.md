@@ -12,3 +12,9 @@
 		2. *App makes calls to a weather data API to find projected weather (during trip dates)*
 		3. *App makes calls to rec gov ratings and cell reception ratings info*
 5. **App sorts list of campgrounds in radius by availability, then distance, and return as table to user**
+
+
+<!--![alt text](https://github.com/[username]/[reponame]/blob/[branch]/image.jpg?raw=true)-->
+![alt text](https://www.dropbox.com/s/bqzr6cmrwlklb7z/screenshot1.PNG?dl=0)
+![alt text](https://www.dropbox.com/s/wdd9zgrnx0eawnr/screenshot2.PNG?dl=0)
+
