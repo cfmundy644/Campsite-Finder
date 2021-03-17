@@ -3,9 +3,9 @@
 	
 1. **User enters an address, a radius that they are willing to travel, and planned travel dates**
 2. **App converts address to lat / long using [Google Geocoding API](https://developers.google.com/maps/documentation/geocoding/overview)**
-3. **App checks AWS database containing a list of campgrounds and corresponding lat / longs to find campgrounds within the radius (campgrounds from [Recreation.gov RIDB project](https://ridb.recreation.gov/))**
+3. **App checks AWS database containing a list of campgrounds and corresponding lat / longs to find campgrounds within the radius (source info from [Recreation.gov RIDB project](https://ridb.recreation.gov/))**
 4. **For campgrounds in radius, app does the following:**
-	1. App makes calls to the recreation.gov api to check availability at those campgrounds over the planned travel dates
+	1. App makes calls to the [Recreation.gov RIDB API](https://ridb.recreation.gov/) to check availability at those campgrounds over the planned travel dates
 	2. App makes calls to [Google Places API](https://developers.google.com/maps/documentation/places/web-service/overview) to get campground ratings
 	3. *Future features:*
 		1. *App makes calls to other rating sites to get campground rating (such as Tripadvisor)*
