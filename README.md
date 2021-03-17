@@ -1,5 +1,5 @@
 # Campsite-Finder #
-### Web app to pull availability (based on travel dates) and review data for campgrounds within a certain radius of a location chosen by user ###
+### Web app that generates a list of campgrounds within a certain radius of a location chosen by user, along with availability information (based on user travel dates) and Google ratings ###
 	
 1. **User enters an address, a radius that they are willing to travel, and planned travel dates**
 2. **App converts address to lat / long using [Google Geocoding API](https://developers.google.com/maps/documentation/geocoding/overview)**
