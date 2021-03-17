@@ -5,7 +5,7 @@ Web app to pull availability (based on travel dates) and review data for campgro
 2. App converts address to lat / long
 3. App checks database (of campgrounds) to find campgrounds within the radius (Federally managed campgrounds only, from recreation.gov RIDB project)
 4. For campgrounds in radius, app does the following:
-	1. App makes calls to the recreation.gov api to check availability at those campgrounds over the planned travel dates\
+	1. App makes calls to the recreation.gov api to check availability at those campgrounds over the planned travel dates
 	2. App makes calls to google maps API to get campground ratings
 	3. Future feature: app makes calls to other rating sites to get campground rating (see if the dyrt has an API)
 	4. Future feature: app makes calls to the open weather API to find projected weather (on trip dates)
