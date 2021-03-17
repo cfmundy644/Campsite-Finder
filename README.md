@@ -14,5 +14,5 @@
 5. **App sorts list of campgrounds in radius by availability, then distance, and return as table to user**
 
 
-![](https://github.com/cfmundy644/Campsite-Finder/blob/main/screenshot1.PNG?raw=true)
-![](https://github.com/cfmundy644/Campsite-Finder/blob/main/screenshot2.PNG?raw=true)
+![Input page](https://github.com/cfmundy644/Campsite-Finder/blob/main/screenshot1.PNG?raw=true)
+![Results page](https://github.com/cfmundy644/Campsite-Finder/blob/main/screenshot2.PNG?raw=true)
