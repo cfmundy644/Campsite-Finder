@@ -8,9 +8,9 @@
 	1. App makes calls to the [Recreation.gov RIDB API](https://ridb.recreation.gov/) to check availability at those campgrounds over the planned travel dates
 	2. App makes calls to the [Google Places API](https://developers.google.com/maps/documentation/places/web-service/overview) to get campground ratings
 	3. *Future features:*
-		1. *App makes calls to other rating sites to get campground rating (such as Tripadvisor)*
-		2. *App makes calls to a weather data API to find projected weather (during trip dates)*
-		3. *App makes calls to rec gov ratings and cell reception ratings info*
+		1. *App makes calls to other rating sites to get additional campground ratings (such as Tripadvisor)*
+		2. *App makes calls to a weather data API to get projected weather during trip dates*
+		3. *App makes calls to Recreation.gov cell reception ratings info*
 5. **App sorts list of campgrounds in radius by availability, then distance, and return as table to user (see [results page screenshot](#results-page-screenshot) below)**
 
 
