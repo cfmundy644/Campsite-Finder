@@ -17,4 +17,4 @@
 ***Screenshot 1: Input Page***
 ![](https://github.com/cfmundy644/Campsite-Finder/blob/main/screenshot1.PNG?raw=true)\
 ***Screenshot 2: Results Page***
-![Results page](https://github.com/cfmundy644/Campsite-Finder/blob/main/screenshot2.PNG?raw=true)
+![](https://github.com/cfmundy644/Campsite-Finder/blob/main/screenshot2.PNG?raw=true)
